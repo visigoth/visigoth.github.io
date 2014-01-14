@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {{! Document Settings }}
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    {{! Page Meta }}
+    <title>{{meta_title}}</title>
+    <meta name="description" content="{{meta_description}}" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    {{! Styles'n'Scripts }}
+    <link rel="stylesheet" type="text/css" href="/assets/css/app.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Open+Sans:700,400" />
+    <script src="/bower_components/modernizr/modernizr.js"></script>
+
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-47069804-1', 'shaheengandhi.com');
+    ga('send', 'pageview');
+
+</script>
+
+
+    {{! Ghost outputs important style and meta data with this tag }}
+    {{ghost_head}}
+</head>
+<body class="{{body_class}}">
+<div id="fb-root">
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=134486209909433";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script></div>
+
+  <div class="off-canvas-wrap">
+    <div class="inner-wrap">
+
+      {{! Off-Canvas Menu }}
+      <aside class="left-off-canvas-menu">
+        <ul class="off-canvas-list">
+          <li><label class="first">{{@blog.title}}</label></li>
+          <li><a href="{{@blog.url}}">Home</a></li>
+          <li><a href="{{@blog.url}}/rss">RSS</a></li>
+        </ul>
+
+        <hr />
+
+        <ul class="off-canvas-list">
+          <li><label class="first">Topics</label></li>
+          {{#foreach tags}}
+            <li><a href="{{@blog.url}}/tag/{{{name}}}">{{{name}}}</a></li>
+          {{/foreach}}
+        </ul>
+      </aside>
+
+      {{! Tab bar for navigation on small screens }}
+      <nav class="tab-bar hide-for-medium-up">
+        <a class="left-off-canvas-toggle menu-icon show-for-small"><span>Menu</span></a>
+      </nav>
+
+      {{! Main Content }}
+      <section role="main">
+        <div class="row">
+          <div class="medium-8 medium-centered columns">
+            <div class="row">
+              <div class="large-3 medium-4 medium-uncentered columns hide-for-small sidebar">
+                <div class="bio">
+                  <a class="profile-picture" href="{{@blog.url}}">
+                    <img src="/assets/images/profile.jpg" alt="{{@blog.title}}" />
+                  </a>
+
+                  <div class="author">Shaheen Gandhi</div>
+
+                  <div class="description">
+                    <p>I am a software engineer working on embedded hardware-software systems.  I built Xbox operating system internals, prototyped the Courier device at Microsoft, and now work on objective-c at Facebook.</p>
+                  </div>
+
+                  <ul class="small-block-grid-4 social-accounts">
+                    <li><a href="{{@blog.url}}/rss/">
+                      <span class="fa-stack rss">
+                        <i class="fa fa-circle fa-stack-2x"></i>
+                        <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                      </span>
+                    </a></li>
+                    <li><a href="http://twitter.com/visigoth">
+                      <span class="fa-stack twitter">
+                        <i class="fa fa-circle fa-stack-2x"></i>
+                        <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                      </span>
+                    </a></li>
+                    <li><a href="http://facebook.com/shaheen">
+                      <span class="fa-stack facebook">
+                        <i class="fa fa-circle fa-stack-2x"></i>
+                        <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                      </span>
+                    </a></li>
+                    <li><a href="http://github.com/visigoth">
+                      <span class="fa-stack github">
+                        <i class="fa fa-circle fa-stack-2x"></i>
+                        <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                      </span>
+                    </a></li>
+                  </ul>
+                </div>
+
+                <form id="subscribe_form" action="http://shaheengandhi.us2.list-manage.com/subscribe/post?u=7c5ac886805e86c7228040973&amp;id=cc1838ba6f" method="post" class="validate" target="_blank" novalidate>
+                  <div class="row collapse">
+                    <div class="small-10 columns">
+                      <input class="email" type="email" value="" name="EMAIL" placeholder="subscribe via email" required>
+                    </div>
+                    <div class="small-2 columns">
+                      <input type="submit" value="&#xf0a9" class="fa button postfix">
+                    </div>
+                  </div>
+                </form>
+
+                <nav id="archive">
+                  <ul class="side-nav">
+                    <li class="heading">Topics</li>
+                    {{#foreach tags}}
+                      <li><a href="{{@blog.url}}/tag/{{{name}}}">{{{name}}}</a></li>
+                    {{/foreach}}
+                  </ul>
+                </nav>
+              </div>
+              <div class="large-9 medium-8 medium-uncentered columns">
+                {{! Everything else gets inserted here }}
+                {{{body}}}
+
+                <!--
+                <footer class="site-footer">
+                  <a class="subscribe icon-feed" href="{{@blog.url}}/rss/"><span class="tooltip">Subscribe!</span></a>
+                  <div class="inner">
+                    <section class="copyright">All content copyright <a href="/">{{@blog.title}}</a> &copy; 2013 &bull; All rights reserved.</section>
+                    <section class="poweredby">Proudly published with <a class="icon-ghost" href="http://ghost.org">Ghost</a></section>
+                  </div>
+                </footer>
+                -->
+              </div>
+            </div>
+        </div>
+      </section>
+      <a class="exit-off-canvas"></a>
+    </div>
+  </div>
+
+  {{! Ghost outputs important scripts and data with this tag }}
+  {{ghost_foot}}
+
+  {{! The main JavaScript file for Casper }}
+  <script type="text/javascript" src="/assets/js/index.js"></script>
+
+  {{! Ghost installs jquery }}
+  <script src="/bower_components/foundation/js/foundation.min.js"></script>
+  <script src="/assets/js/app.js"></script>
+
+</body>
+</html>

@@ -1,1 +1,4 @@
 _site
+_layouts/bower_components
+_layouts/.sass-cache/*
+assets
