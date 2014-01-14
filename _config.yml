@@ -1,3 +1,6 @@
 name: Your New Jekyll Site
 markdown: redcarpet
 pygments: true
+tag_page_layout: default
+tag_page_dir: tag
+paginate: 4
