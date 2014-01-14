@@ -1,40 +1,236 @@
 @import "settings";
 @import "foundation";
+@import url("//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css");
+@import url("http://fonts.googleapis.com/css?family=Noto+Sans");
+@import url("//cdn-images.mailchimp.com/embedcode/slim-081711.css");
 
-// Or selectively include components
-// @import
-//   "foundation/components/accordion",
-//   "foundation/components/alert-boxes",
-//   "foundation/components/block-grid",
-//   "foundation/components/breadcrumbs",
-//   "foundation/components/button-groups",
-//   "foundation/components/buttons",
-//   "foundation/components/clearing",
-//   "foundation/components/dropdown",
-//   "foundation/components/dropdown-buttons",
-//   "foundation/components/flex-video",
-//   "foundation/components/forms",
-//   "foundation/components/grid",
-//   "foundation/components/inline-lists",
-//   "foundation/components/joyride",
-//   "foundation/components/keystrokes",
-//   "foundation/components/labels",
-//   "foundation/components/magellan",
-//   "foundation/components/orbit",
-//   "foundation/components/pagination",
-//   "foundation/components/panels",
-//   "foundation/components/pricing-tables",
-//   "foundation/components/progress-bars",
-//   "foundation/components/reveal",
-//   "foundation/components/side-nav",
-//   "foundation/components/split-buttons",
-//   "foundation/components/sub-nav",
-//   "foundation/components/switch",
-//   "foundation/components/tables",
-//   "foundation/components/tabs",
-//   "foundation/components/thumbs",
-//   "foundation/components/tooltips",
-//   "foundation/components/top-bar",
-//   "foundation/components/type",
-//   "foundation/components/offcanvas",
-//   "foundation/components/visibility";
+body {
+    font-family: "Open Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+}
+
+// Sidebar stuff
+.sidebar {
+    background: #fafafa;
+    padding: 32px 20px;
+}
+
+#archive {
+    margin-top: 1.5rem;
+}
+
+.sidebar .side-nav {
+    padding: 0;
+    text-align: right;
+    font-family: "Open Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+}
+
+.sidebar .side-nav li {
+    margin: 0;
+}
+
+.sidebar .side-nav .heading {
+    text-transform: uppercase;
+    margin-bottom: .50rem;
+}
+
+.sidebar div.author {
+    text-align: center;
+    margin-top: .75rem;
+    margin-bottom: 1.25rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sidebar .bio p {
+    margin-top: 1rem;
+    font-size: small;
+    text-align: justify;
+}
+
+.sidebar div.bio div.description {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar div.bio {
+    margin-bottom: 1.3rem;
+}
+
+.social-accounts {
+    max-width: 80%;
+    margin: auto;
+}
+
+.social-accounts li {
+    text-align: center;
+    padding: 0;
+}
+
+.social-accounts .rss {
+    color: #E67E22;
+}
+
+.social-accounts .twitter {
+    color: #00ACED;
+}
+
+.social-accounts .facebook {
+    color: #3B5998;
+}
+
+a.profile-picture {
+    display: block;
+    width: 100px;
+    height: 100px;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    top: 30px;
+    overflow: hidden;
+    margin: auto;
+}
+
+#subscribe_form input.button {
+  font-family: "FontAwesome";
+}
+
+// Main section
+section[role=main] > .row {
+    max-width: 100%;
+}
+
+main.content {
+    padding-top: 32px;
+}
+
+.post {
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.post-meta {
+    @extend h6;
+    margin-top: .1rem;
+    margin-right: .25rem;
+    font-family: "Noto Sans", monospace, sans-serif;
+    font-size: .7rem;
+}
+
+.post-meta time {
+    margin-left: .4rem;
+}
+
+.post-title {
+    margin-bottom: 0;
+    font-size: 3rem;
+}
+
+.post-header {
+    margin-bottom: 1rem;
+}
+
+.post-content h1 {
+    font-size: 1.75rem;
+}
+
+.post-content h2 {
+    font-size: 1.5rem;
+}
+
+.post-meta {
+    display: block;
+    border-top: 1px solid #bbb;
+    margin-top: 0;
+    margin-bottom: 2.5rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    color: #bbb;
+}
+
+.post-meta a, .post-meta a:hover {
+  color: #bbb;
+  text-decoration: underline;
+}
+
+.post-meta {
+    color: #bbb;
+}
+
+ul.post-tags {
+  display: inline-block;
+  list-style: none;
+  font-size: inherit;
+  margin: 0;
+}
+
+ul.post-tags li {
+  margin: 0 .1rem;
+}
+
+.fb-comments, .fb-comments span, .fb-comments.fb_iframe_widget span iframe {
+    width: 100% !important;
+    margin-top: .3rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+nav.pagination {
+  height: 2rem;
+  font-family: "Noto Sans", monospace, sans-serif;
+  font-size: small;
+  color: #bbb;
+}
+
+// Code blocks
+mark {
+    background-color: #ffc336;
+}
+
+code, tt {
+    padding: 1px 3px;
+    font-family: Inconsolata, monospace, sans-serif;
+    font-size: 0.85em;
+    white-space: pre;
+    border: 1px solid #E3EDF3;
+    background: #F7FAFB;
+    border-radius: 2px;
+}
+
+pre {
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 1.6em 0;
+    border: 1px solid #E3EDF3;
+    width: 100%;
+    padding: 10px;
+    font-family: Inconsolata, monospace, sans-serif;
+    font-size: 0.9em;
+    white-space: pre;
+    overflow: auto;
+    background: #F7FAFB;
+    border-radius: 3px;
+}
+
+pre code, tt {
+    font-size: inherit;
+    white-space: -moz-pre-wrap;
+    white-space: pre-wrap;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+kbd {
+    display: inline-block;
+    margin-bottom: 0.4em;
+    padding: 1px 8px;
+    border: #ccc 1px solid;
+    color: #666;
+    text-shadow: #fff 0 1px 0;
+    font-size: 0.9em;
+    font-weight: bold;
+    background: #f4f4f4;
+    border-radius: 4px;
+    box-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.2),
+        0 1px 0 0 #fff inset;
+}

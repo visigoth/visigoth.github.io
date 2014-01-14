@@ -1,4 +1,6 @@
-name: Your New Jekyll Site
+name: Shaheen Gandhi
+url: http://shaheengandhi.com
+description: Professional blog for Shaheen Gandhi
 markdown: redcarpet
 pygments: true
 tag_page_layout: default
