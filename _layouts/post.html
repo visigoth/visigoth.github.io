@@ -11,9 +11,6 @@ layout: default
       {{content}}
     </section>
 
-    <footer class="post-footer">
-      <div class="post-meta"><i class="fa fa-calendar-o"></i><time datetime="{{page.date | date_to_string}}">{{page.date | date_to_string}}</time></div>
-      <div id="comments" class="fb-comments" data-href="{{site.url}}{{page.url}}" data-numposts="5" data-colorscheme="light"></div>
-    </footer>
+    {% include post_footer %}
   </article>
 </main>

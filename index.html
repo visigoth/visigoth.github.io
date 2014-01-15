@@ -12,15 +12,7 @@ title: shaheen gandhi | blog
     <section class="post-content">
       {{post.content}}
     </section>
-    <footer class="post-footer">
-      <span class="post-meta">
-        <a href="{{post.url}}#comments"><fb:comments-count href="{{post.url}}"></fb:comments-count> Comments</a> //
-        <i class="fa fa-calendar-o"></i><time datetime="{{post.date | date_to_string}}">{{post.date | date_to_string}}</time> //
-        <ul class="post-tags">
-          {{ post | tags }}
-        </ul>
-      </span>
-    </footer>
+    {% include post_footer %}
   </article>
   {% endfor %}
 
