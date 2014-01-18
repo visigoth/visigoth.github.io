@@ -4,7 +4,7 @@ description: Professional blog for Shaheen Gandhi
 markdown: redcarpet
 markdown_ext: markdown,md
 pygments: true
-tag_page_layout: default
+tag_page_layout: posts
 tag_page_dir: tag
 paginate: 4
 paginate_path: page/:num
