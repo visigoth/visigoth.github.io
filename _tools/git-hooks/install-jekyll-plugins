@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Install jekyll-tagging gem locally for the user
+pushd plugins/jekyll-tagging
+
+rm *.gem
+gem build jekyll-tagging.gemspec
+gem install --local --user-install --force jekyll *.gem
+
+popd

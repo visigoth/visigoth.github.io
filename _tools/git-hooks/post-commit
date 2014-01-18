@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+
+# Install dependent jekyll plugins
+./install-jekyll-plugins
