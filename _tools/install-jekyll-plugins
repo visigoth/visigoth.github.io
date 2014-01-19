@@ -8,8 +8,8 @@ if [ ! -d .git ]; then
 fi
 
 LAST_REVISION=
-if [ -f .last-jekyll-tagging-revision ]; then
-  LAST_REVISION=`cat .last-jekyll-tagging-revision`
+if [ -f $HOME/.gem/.last-jekyll-tagging-revision ]; then
+  LAST_REVISION=`cat $HOME/.gem/.last-jekyll-tagging-revision`
 fi
 
 # Install jekyll-tagging gem locally for the user
@@ -23,7 +23,7 @@ if [ "$CURRENT_REVISION" != "$LAST_REVISION" ]; then
   gem build jekyll-tagging.gemspec
   gem install --local --user-install --force jekyll *.gem
   popd > /dev/null
-  `echo $CURRENT_REVISION > .last-jekyll-tagging-revision`
+  `echo $CURRENT_REVISION > $HOME/.gem/.last-jekyll-tagging-revision`
 else
   popd >> /dev/null
 fi
