@@ -3,9 +3,6 @@
 set -e
 set -v
 
-pwd
-find .
-
 # Update submodule
 git submodule update --init
 
