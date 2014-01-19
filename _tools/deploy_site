@@ -11,7 +11,9 @@ if [ ! -d .git ]; then
 fi
 
 # Build the site
+echo "Building site"
 jekyll build
 
 # Copy _site to the right spot
+echo "Deploying site"
 cp -R _site/* $DEPLOY_TO
