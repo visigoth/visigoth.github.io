@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-set -v
 
 unset GIT_DIR
 GIT_REPO=$HOME/jekyll.git
