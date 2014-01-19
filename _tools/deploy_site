@@ -3,6 +3,7 @@
 set -e
 
 DEPLOY_TO=/sites/blog/www
+export PATH=$HOME/.gem/ruby/2.0.0/bin:$PATH
 
 if [ ! -d .git ]; then
   echo "Run from top level directory"
