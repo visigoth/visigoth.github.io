@@ -10,7 +10,7 @@ trap "{ rm -rf $TEMP ; exit 255 ; }" EXIT
 
 pushd $TEMP
 echo "cloning from $GIT_DIR"
-git clone -l $GIT_DIR jekyll
+git clone -l "$GIT_DIR" jekyll
 cd jekyll
 git checkout deploy
 
