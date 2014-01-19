@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -e
+
+if [ ! -d .git ]; then
+  echo "Run from top level directory"
+  exit 1
+fi
+
 # Install jekyll-tagging gem locally for the user
 pushd plugins/jekyll-tagging
 
