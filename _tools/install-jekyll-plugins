@@ -27,3 +27,5 @@ if [ "$CURRENT_REVISION" != "$LAST_REVISION" ]; then
 else
   popd >> /dev/null
 fi
+
+echo "Done installing gems"
