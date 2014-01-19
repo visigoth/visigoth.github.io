@@ -12,7 +12,12 @@ git clone -l $GIT_DIR jekyll
 cd jekyll
 git checkout deploy
 
-# The checkout hook will have installed the tagging gem
+# The checkout hook did not run because it was not installed (the first checkout
+# just occurred)
+./_tools/git-hooks/post-checkout
+
+# Copy receive hook (and deps) back to the bare repository from the clone
+cp _tools/git-hooks/post-receive "$GIT_DIR/hooks"
 
 # Deploy the site
 ./_tools/deploy_site
