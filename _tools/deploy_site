@@ -15,5 +15,3 @@ jekyll build
 
 # Copy _site to the right spot
 cp -R _site/* $DEPLOY_TO
-
-exit 0

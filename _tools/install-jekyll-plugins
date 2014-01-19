@@ -27,5 +27,3 @@ if [ "$CURRENT_REVISION" != "$LAST_REVISION" ]; then
 else
   popd >> /dev/null
 fi
-
-exit 0

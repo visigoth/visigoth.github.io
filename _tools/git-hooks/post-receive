@@ -23,5 +23,3 @@ cp _tools/git-hooks/post-receive "$GIT_REPO/hooks"
 ./_tools/deploy_site
 
 popd
-
-exit 0
