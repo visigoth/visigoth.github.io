@@ -13,7 +13,7 @@ if [ -f $HOME/.gem/.last-jekyll-tagging-revision ]; then
 fi
 
 # Install jekyll-tagging gem locally for the user
-pushd plugins/jekyll-tagging >> /dev/null
+pushd plugins/jekyll-tagging
 
 # Determine whether plugin needs to be installed
 CURRENT_REVISION=`git rev-parse HEAD`
@@ -21,10 +21,10 @@ CURRENT_REVISION=`git rev-parse HEAD`
 if [ "$CURRENT_REVISION" != "$LAST_REVISION" ]; then
   rm -f *.gem
   bash -c "gem build jekyll-tagging.gemspec && gem install --local --user-install --force jekyll *.gem"
-  popd > /dev/null
+  popd
   `echo $CURRENT_REVISION > $HOME/.gem/.last-jekyll-tagging-revision`
 else
-  popd >> /dev/null
+  popd
 fi
 
 echo "Done installing gems"
