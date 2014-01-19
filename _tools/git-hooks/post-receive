@@ -10,9 +10,9 @@ trap "{ rm -rf $TEMP ; exit 255 ; }" EXIT
 
 pushd $TEMP
 echo "cloning from $GIT_DIR"
-git clone -l "$GIT_DIR" jekyll
+git clone "$GIT_DIR" jekyll
 cd jekyll
-GIT_WORK_TREE=$TEMP/jekyll git checkout deploy
+git checkout deploy
 
 # The checkout hook did not run because it was not installed (the first checkout
 # just occurred)
