@@ -6,4 +6,4 @@ set -e
 git submodule update --init
 
 # Install dependent jekyll plugins
-./install-jekyll-plugins
+./_tools/install-jekyll-plugins

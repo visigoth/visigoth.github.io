@@ -2,4 +2,4 @@
 set -e
 
 # Install dependent jekyll plugins
-./install-jekyll-plugins
+./_tools/install-jekyll-plugins
