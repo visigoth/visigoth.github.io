@@ -12,8 +12,7 @@ pushd $TEMP
 echo "cloning from $GIT_DIR"
 git clone -l "$GIT_DIR" jekyll
 cd jekyll
-ls -l
-git checkout deploy
+GIT_WORK_TREE=$TEMP/jekyll git checkout deploy
 
 # The checkout hook did not run because it was not installed (the first checkout
 # just occurred)
