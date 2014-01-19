@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+DEPLOY_TO=/sites/blog/www
+
+if [ ! -d .git ]; then
+  echo "Run from top level directory"
+  exit 1
+fi
+
+# Build the site
+jekyll build
+
+# Copy _site to the right spot
+cp -R _site/* $DEPLOY_TO
+
+exit 0
