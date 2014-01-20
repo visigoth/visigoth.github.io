@@ -12,4 +12,7 @@ fi
 
 # Build the site
 echo "Building site"
+pushd _layouts
+compass compile
+popd
 jekyll build -d $DEPLOY_TO
