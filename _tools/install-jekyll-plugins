@@ -20,7 +20,7 @@ CURRENT_REVISION=`git rev-parse HEAD`
 
 if [ "$CURRENT_REVISION" != "$LAST_REVISION" ]; then
   rm -f *.gem
-  exec gem build jekyll-tagging.gemspec && gem install --user-install --force jekyll *.gem
+  exec gem build jekyll-tagging.gemspec && gem install --user-install --force *.gem
   `echo $CURRENT_REVISION > $HOME/.gem/.last-jekyll-tagging-revision`
 fi
 
