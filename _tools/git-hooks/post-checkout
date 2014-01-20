@@ -7,5 +7,3 @@ git submodule update --init
 
 # Install dependent jekyll plugins
 ./_tools/install-jekyll-plugins
-
-echo "post-checkout complete"
