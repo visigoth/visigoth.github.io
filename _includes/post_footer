@@ -1,7 +1,7 @@
    <footer class="post-footer">
       {% if post %}
       <span class="post-meta">
-        <a href="{{post.url}}#comments"><fb:comments-count href="{{post.url}}"></fb:comments-count> Comments</a> //
+        <a href="{{site.url}}{{post.url}}#comments"><fb:comments-count href="{{site.url}}{{post.url}}"></fb:comments-count> Comments</a> //
         <i class="fa fa-calendar-o"></i><time datetime="{{post.date | date_to_long_string}}">{{post.date | date_to_long_string}}</time> //
         <ul class="post-tags">
           {{ post | tags }}
