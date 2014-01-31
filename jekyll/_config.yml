@@ -9,3 +9,4 @@ tag_page_dir: tag
 paginate: 4
 paginate_path: page/:num
 permalink: /:title
+future: false
