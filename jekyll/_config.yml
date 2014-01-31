@@ -8,4 +8,4 @@ tag_page_layout: posts
 tag_page_dir: tag
 paginate: 4
 paginate_path: page/:num
-permalink: pretty
+permalink: /:title
