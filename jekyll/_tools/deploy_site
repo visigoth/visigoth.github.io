@@ -1,18 +1,27 @@
 #!/bin/bash
 
 set -e
+set -x
 
-DEPLOY_TO=/sites/blog/www
-export PATH=$HOME/.gem/ruby/2.0.0/bin:$PATH
+DEPLOY_TO=blog:site/www
 
 if [ ! -d .git ]; then
   echo "Run from top level directory"
   exit 1
 fi
 
+TEMP=`mktemp -d`
+
 # Build the site
 echo "Building site"
+pushd jekyll
+
 pushd _layouts
 compass compile
 popd
-jekyll build -d $DEPLOY_TO
+
+jekyll build -d $TEMP
+popd
+
+# Deploy via rsync
+rsync -trlvz $TEMP/ $DEPLOY_TO
