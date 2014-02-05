@@ -4,13 +4,12 @@ title: Synchronizing GCD Dispatch Queues
 tags:
 - ios
 - cocoa
-- gcd
-
+- programming
 ---
 
-Let's consider some use cases of GCD dispatch queues. They are often used in producer-consumer relationships for processing data or doing asynchronous work, either in a serial or parallel fashion.
+Let's consider some use cases of GCD dispatch queues. They are often used in producer-consumer relationships for doing asynchronous work, either in a serial or parallel fashion.
 
-In rare cases, you may need to synchronize the work on your queue with another thread. However, a dispatch queue does not operate on any given thread, and combining synchronization primitives with each block placed on the queue would be complicated and fragile.
+In rare cases, you may need to synchronize the work on your queue with another thread. However, a dispatch queue does not operate on a given thread, and combining synchronization primitives with each block placed on the queue would be complicated and fragile.
 
 A better method is to pause and resume the execution of a dispatch queue using `dispatch_suspend` and `dispatch_resume`.
 
@@ -32,10 +31,10 @@ Another little-known facility provided by dispatch queues are barrier blocks. Ba
 
 Armed with this knowledge, we can synchronize the work done on a dispatch queue with an external thread like so:
 
-{% highlight objc %}
+```objc
 dispatch_barrier_sync(queue, ^{ dispatch_suspend(queue); });
 
 // Do some stuff
 
 dispatch_resume(queue);
-{% endhighlight %}
+```
