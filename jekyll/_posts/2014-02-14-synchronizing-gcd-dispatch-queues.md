@@ -25,11 +25,11 @@ When running this program on OS X 10.9, the program shows `dispatch_suspend` is 
 
 ## Barrier Blocks
 
-Another little-known facility provided by dispatch queues are barrier blocks. Barrier blocks work on both serial and concurrent dispatch queues. When submitted to a queue, all blocks ahead of the barrier will complete before the barrier starts execution, and all blocks behind the barrier will only start executing once the barrier is complete. For serial queues, this is the same as queueing any block. For concurrent queues, this is especially handy for our purposes. Submitting a barrier block can be done with `dispatch_barrier_async` and `dispatch_barrier_sync` (and their function variants).
+Another facility provided by dispatch queues are barrier blocks. Barrier blocks work on both serial and concurrent dispatch queues. When submitted to a queue, all blocks ahead of the barrier will complete before the barrier starts execution, and all blocks behind the barrier will only start executing once the barrier is complete. For serial queues, this is the same as queueing any block. For concurrent queues, this ensures ordering of work and is especially handy for our purposes. Submitting a barrier block can be done with `dispatch_barrier_async` and `dispatch_barrier_sync` (and their function variants).
 
 ## Synchronizing Queues
 
-Armed with this knowledge, we can synchronize the work done on a dispatch queue with an external thread like so:
+Armed with this knowledge, we can create a blocking synchronize the work done on a dispatch queue with an external thread like so:
 
 ```objc
 dispatch_barrier_sync(queue, ^{ dispatch_suspend(queue); });
@@ -38,3 +38,5 @@ dispatch_barrier_sync(queue, ^{ dispatch_suspend(queue); });
 
 dispatch_resume(queue);
 ```
+
+Note this doesn't only wait for running blocks to finish; it flushes any pending work.  To achieve the former semantics, you would need to use synchronization primitives in each of your dispatch queue blocks (without a higher level abstraction).
