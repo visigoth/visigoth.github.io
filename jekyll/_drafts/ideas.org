@@ -1,34 +1,38 @@
 #+TITLE: Blog Post Ideas
 
-* NSProxy Futures
+* Topics to Write About
+** NSProxy Futures
 how to create a future for an object using NSProxy
 there is a trick to changing the class of the object
 - override alloc to return block the size of the target object
-* Esoteric objc runtime things
+** Esoteric objc runtime things
 how does imp_implementationWithBlock work?
-* Profiling forwardInvocation
+** Profiling forwardInvocation
 forwardInvocation is 1000x slower
-* Gotchas in NSURLProtocol
+** Gotchas in NSURLProtocol
 NSURLProtocol has lots of corners
-* App Lifecycle Notifications and Threading
+** App Lifecycle Notifications and Threading
 backgrounding notification can come on a background thread
 also, create bg task prior to backgrounding
-* Data and Container Views
+** Data and Container Views
 Views should either present data or maintain layout of subviews
-* Static Libs and Code Bloat
+** Static Libs and Code Bloat
 static libraries with lots of helper classes promote code bloat
-** -ObjC and -load_all
-* Async API architecture
+*** -ObjC and -load_all
+** Async API architecture
 wrap a thread-unsafe object in an async dispatcher
-* Synchronous wrappers for Async APIs
+** Synchronous wrappers for Async APIs
 async apis sometimes need synchronous wrappers
-* CoreGraphics data source APIs
+** CoreGraphics data source APIs
 you can use the CG data source APIs to avoid reading whole PNGs into memory
-* Cut out a mask from an invisible layer underneath
+** Cut out a mask from an invisible layer underneath
 need to research how to do this: how to have a background layer that another layer like UILabel or similar cuts into
-* Assert dispatch queue execution
+** Assert dispatch queue execution
 how do you assert that a block is being executed on a particular dispatch queue?
-* Compare data structures to boost
+** Compare data structures to boost
 how do NSArray and NSDictionary compare to boost?
 *
-* Knowing when a thread really exits
+
+
+* Topics Written
+** Knowing when a thread really exits
