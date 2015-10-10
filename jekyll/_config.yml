@@ -3,7 +3,7 @@ url: http://shaheengandhi.com
 description: programming cocoa and ios
 markdown: redcarpet
 markdown_ext: markdown,md
-pygments: true
+highlighter: pygments
 tag_page_layout: posts
 tag_page_dir: tag
 paginate: 4
