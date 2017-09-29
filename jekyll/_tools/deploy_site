@@ -3,7 +3,7 @@
 set -e
 set -x
 
-DEPLOY_TO=br:sites/blog/www
+DEPLOY_TO=blog@br:www
 
 if [ ! -d .git ]; then
   echo "Run from top level directory"
