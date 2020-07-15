@@ -1,6 +1,6 @@
 [submodule "_plugins/jekyll-tagging"]
 	path = _plugins/jekyll-tagging
-	url = git@github.com:visigoth/jekyll-tagging.git
+	url = https://github.com/visigoth/jekyll-tagging.git
 [submodule "code"]
 	path = code
-	url = gitadmin@voltron.brokenrobotllc.com:blog-code.git
+	url = https://github.com/visigoth/blog-code.git
