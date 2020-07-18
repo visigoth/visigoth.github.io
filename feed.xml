@@ -1,0 +1,954 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>shaheen gandhi | blog</title>
+    <description>programming cocoa and ios</description>
+    <link>http://shaheengandhi.com</link>
+    <atom:link href="http://shaheengandhi.com/feed.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Controlling How NSThread and NSRunLoop Exit</title>
+      <description>&lt;p&gt;While most concurrency can be dealt with by using GCD dispatch queues, there are some things for which you will want to use a separate &lt;code&gt;NSThread&lt;/code&gt;. For instance, concurrent network programming remains mostly in this area. You may consider using the popular &lt;a href=&quot;https://github.com/robbiehanson/CocoaAsyncSocket&quot;&gt;&lt;code&gt;CocoaAsyncSocket&lt;/code&gt;&lt;/a&gt; library, which abstracts away much of the complexity of socket programming on iOS. But, for the sake of this post, assume some work requires a separate thread, and we desire to cleanly start and stop the thread. That is, when we decide to start or stop the thread, we want to ensure it has been initialized or destroyed before moving on.&lt;/p&gt;
+
+&lt;p&gt;You can get the final version of the code example below at &lt;a href=&quot;https://github.com/visigoth/blog-code/tree/master/nsthread_lifecycle&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2&gt;Thread Setup&lt;/h2&gt;
+
+&lt;p&gt;Remember that threads are an artefact of the operating system and not the objective-c runtime. That means all the nice stuff like an &lt;code&gt;NSAutoreleasePool&lt;/code&gt; and an &lt;code&gt;NSRunLoop&lt;/code&gt; need to be managed by the thread&amp;#39;s top level code. Here is a code snippet of a thread&amp;#39;s main method that sets up an autorelease pool as well as starts pumping &lt;code&gt;NSRunLoop&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;start&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSThread&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithTarget&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;threadProc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:)&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;threadProc:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;ignored&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;@autoreleasepool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// Startup code here&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Just spin in a tight loop running the runloop.&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSRunLoop&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;currentRunLoop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;runUntilDate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDate&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;dateWithTimeIntervalSinceNow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]]&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;TRUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This code has many problems. Note that each run of the runloop has a timeout of 1 second. When the runloop has nothing to do for extended periods of time, the thread will still wake up every second and go through the &lt;code&gt;while&lt;/code&gt; loop&amp;#39;s code, only to end up sitting in the runloop&amp;#39;s wait condition. That burns CPU and battery. Also, this thread has no exit condition. Even if we want the thread to live until the end of the application&amp;#39;s life, we probably want a way to shut it down cleanly. Here&amp;#39;s an enumeration of the problems we want to fix:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Unsure when the thread is ready for work&lt;/li&gt;
+&lt;li&gt;Never goes to sleep&lt;/li&gt;
+&lt;li&gt;No way to exit the thread cleanly&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Solving all three problems at once is tricky.  Fixing #2 means keeping the runloop asleep, preferrably waking only when there is work to be done (being notified by a runloop source). But, that makes it difficult to exit the thread in a timely manner.&lt;/p&gt;
+
+&lt;h2&gt;Wait for Infinity&lt;/h2&gt;
+
+&lt;p&gt;How can we make &lt;code&gt;NSRunLoop&lt;/code&gt; wait for infinity?  The goal is to make sure that the thread goes to sleep.  Looking at the documentation for &lt;code&gt;runUntilDate:&lt;/code&gt;, this is not the case:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If no input sources or timers are attached to the run loop, this method exits immediately; otherwise, it runs the receiver in the NSDefaultRunLoopMode by repeatedly invoking runMode:beforeDate: until the specified expiration date.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The second sentence means this code keeps spinning on the CPU, which is the exact opposite of our desired behavior.  A better alternative is &lt;code&gt;runMode:beforeDate:&lt;/code&gt;, for which the documentation reads:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If no input sources or timers are attached to the run loop, this method exits immediately and returns NO; otherwise, it returns after either the first input source is processed or limitDate is reached.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;At least there&amp;#39;s a chance the thread will sleep when using this method. However, the thread still runs in a continuous loop when there are no sources or timers. If you are only using a run loop to dispatch &lt;code&gt;performSelector:&lt;/code&gt; calls, you need to add a runloop source of your own to make the thread sleep. As a side effect, it would be effective to use this source to send work to the thread, but that is an exercise left to the reader.&lt;/p&gt;
+
+&lt;p&gt;One last thing: what value of &lt;code&gt;NSDate&lt;/code&gt; should be used? Any large value is fine, as waking the thread once a day is a large enough to keep the thread silent. &lt;code&gt;+[NSDate distantFuture]&lt;/code&gt; is a convenient factory for such a date.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DoNothingRunLoopCallback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;threadProc:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;ignored&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;@autoreleasepool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;perform&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DoNothingRunLoopCallback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopAddSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSRunLoop&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;currentRunLoop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;runMode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSDefaultRunLoopMode&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;beforeDate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;distantFuture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;TRUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRemoveSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRelease&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;The exit condition&lt;/h2&gt;
+
+&lt;p&gt;Now that the thread sleeps forever, how can we ensure a clean shutdown of the thread? It&amp;#39;s entirely possible to use &lt;code&gt;+[NSThread exit]&lt;/code&gt; to kill the currently running thread. But, this does not clean up stack references to heap objects (like the runloop source that is created), drain the top level autorelease pool, nor allows the thread to flush any remaining work. Instead, we need to make the runloop stop sleeping in order to exit &lt;code&gt;runMode:beforeDate:&lt;/code&gt;, and we need a condition the thread can check in order to know it&amp;#39;s time to shut down.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;NSRunLoop&lt;/code&gt;&amp;#39;s conditions for exiting &lt;code&gt;runMode:beforeDate:&lt;/code&gt; are somewhat limited. Its return values being &lt;code&gt;YES&lt;/code&gt; (when the runloop processed an input source or if the timeout was reached) or &lt;code&gt;NO&lt;/code&gt; (when the runloop could not be started) aren&amp;#39;t great. Given that the documentation states that &lt;code&gt;NO&lt;/code&gt; is returned only when there are no sources or timers, our code will never see &lt;code&gt;NO&lt;/code&gt; returned since we added an input source to keep the runloop from spinning!&lt;/p&gt;
+
+&lt;p&gt;Luckily, &lt;code&gt;NSRunLoop&lt;/code&gt; controls the same object that &lt;code&gt;CFRunLoop&lt;/code&gt; APIs do. The CoreFoundation alternative is to use &lt;code&gt;CFRunLoopRunInMode&lt;/code&gt;, which provides a more specific reason for the runloop&amp;#39;s exit. Specifically, &lt;code&gt;kCFRunLoopRunStopped&lt;/code&gt; indicates the runloop was stopped by &lt;code&gt;CFRunLoopStop&lt;/code&gt;. This is also the reason that &lt;code&gt;CFRunLoopRun&lt;/code&gt; exits (other than having no sources or times, but that will not occur due to our fake source), so we don&amp;#39;t need to bother with &lt;code&gt;CFRunLoopRunInMode&lt;/code&gt;, nor check a condition.&lt;/p&gt;
+
+&lt;p&gt;It is best to execute &lt;code&gt;CFRunLoopStop&lt;/code&gt; on the target thread itself. We can do this by using &lt;code&gt;performSelector:onThread:withObject:waitUntilDone:&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The new &lt;code&gt;threadProc:&lt;/code&gt; looks like this:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;threadProc:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;ignored&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;@autoreleasepool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;perform&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DoNothingRunLoopCallback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopAddSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Keep processing events until the runloop is stopped.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRemoveSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRelease&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We can use code like the following to exit the thread quickly from any thread, including the target thread itself:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;stop&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;performSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_stop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;onThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;withObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;waitUntilDone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;_stop&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;CFRunLoopStop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;Synchronizing thread startup and exit&lt;/h2&gt;
+
+&lt;p&gt;Two more problems to solve: when starting the thread, can we ensure that it is ready? When shutting down a thread, can we ensure it is gone?&lt;/p&gt;
+
+&lt;p&gt;I would note that there are better threading patterns than attempting to ensure the state of the target thread. For example, a thread should be able to accept work, but simply not process it until it is ready. Resources outside of the thread&amp;#39;s runloop should be minimal such that ensuring the thread is no longer executing should be above and beyond the desired knowledge of the thread&amp;#39;s state.&lt;/p&gt;
+
+&lt;p&gt;It is tempting to simply add &lt;code&gt;waitUntilDone:YES&lt;/code&gt; to the &lt;code&gt;performSelector&lt;/code&gt; statement in order to wait until the target thread has exited, but that would only wait until the &lt;code&gt;_stop&lt;/code&gt; selector was invoked, and not wait for the thread&amp;#39;s cleanup code to be run. In order to do that, we need to make a new assumption: the target thread is being shut down from another thread. It would be impossible for a thread to wait for itself to shut down.&lt;/p&gt;
+
+&lt;p&gt;In order for the target thread to signal to the control thread that it is done, a condition must be shared between them. &lt;code&gt;NSCondition&lt;/code&gt; provides convenient semantics for our purposes.&lt;/p&gt;
+
+&lt;p&gt;The thread management code is below. This pattern keeps a thread with no work asleep for long periods of time, while allowing for a fast and clean exit. It also allows for startup and shutdown to be synchronized.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;start&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSThread&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithTarget&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;threadProc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:)&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// _condition was created in -init&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wait&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;stop&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;performSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_stop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;onThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;withObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;waitUntilDone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wait&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;threadProc:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;object&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;@autoreleasepool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;perform&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DoNothingRunLoopCallback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopAddSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Keep processing events until the runloop is stopped.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRemoveSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRelease&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;Ensuring Destruction of Thread Resources&lt;/h2&gt;
+
+&lt;p&gt;There is still another issue with this code: when the thread has signaled its exit, the autorelease pool has not yet been drained. Without ensuring that the thread&amp;#39;s memory resources have been released, the purpose of synchronizing the thread&amp;#39;s exit becomes much less appealing.&lt;/p&gt;
+
+&lt;p&gt;There&amp;#39;s a bit of a catch-22. &lt;code&gt;NSCondition&lt;/code&gt; makes no promise that it is free from using &lt;code&gt;-autorelease&lt;/code&gt; in its implementations of &lt;code&gt;-lock&lt;/code&gt;, &lt;code&gt;-signal&lt;/code&gt;, and &lt;code&gt;-unlock&lt;/code&gt;. That means there should be a valid &lt;code&gt;NSAutoreleasePool&lt;/code&gt; when using these APIs. We have two solutions available to us. We can either manually drain the autorelease pool, or use a different way to synchronize the thread&amp;#39;s exit that waits until &lt;code&gt;threadProc:&lt;/code&gt; has exited. The first is somewhat messy. The second has two variants of its own.&lt;/p&gt;
+
+&lt;h3&gt;Manual Autorelease&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;In order to use &lt;code&gt;NSAutoreleasePool&lt;/code&gt; directly, you must disable ARC.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Remember that &lt;code&gt;-[NSAutoreleasePool drain]&lt;/code&gt; is effectively the same as &lt;code&gt;-[NSAutoreleasePool release]&lt;/code&gt; and that the pool is no longer valid after draining it. So, manually draining an autorelease pool means creating another one to ensure the &lt;code&gt;NSCondition&lt;/code&gt; APIs have the right environment.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;threadProc:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;object&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;bp&quot;&gt;NSAutoreleasePool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSAutoreleasePool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;perform&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DoNothingRunLoopCallback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopAddSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Keep processing events until the runloop is stopped.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRemoveSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRelease&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Release all accumulated resources, but make sure NSCondition has the&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// right environment.&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;drain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;pool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSAutoreleasePool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;drain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;Using NSThreadWillExitNotification&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;NSThreadWillExitNotification&lt;/code&gt; is a notification sent by &lt;code&gt;NSThread&lt;/code&gt; when the thread&amp;#39;s main function has finished and the thread is about to finish execution. This must happen after &lt;code&gt;threadProc:&lt;/code&gt;, so this ensures the thread&amp;#39;s top level autorelease pool has been drained. Since the notification fires on the exiting thread, &lt;code&gt;NSCondition&lt;/code&gt; is still used to synchronize the state of the thread.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;stop&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;bp&quot;&gt;NSNotificationCenter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSNotificationCenter&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;defaultCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nc&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;addObserver&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;@(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_signal&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSThreadWillExitNotification&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;performSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_stop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;onThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;withObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;waitUntilDone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wait&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nc&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;removeObserver&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSThreadWillExitNotification&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;threadProc:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;object&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;@autoreleasepool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;perform&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DoNothingRunLoopCallback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopAddSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Keep processing events until the runloop is stopped.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRemoveSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRelease&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;_signal&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;Using pthreads&lt;/h3&gt;
+
+&lt;p&gt;All of the above solutions have one slight problem: the thread hasn&amp;#39;t quite exited when the control thread believes it has. The target thread is very close to being done, but that is not the same as done.&lt;/p&gt;
+
+&lt;p&gt;To ensure that, we must go outside the realm of &lt;code&gt;NSThread&lt;/code&gt; and use pthreads instead. &lt;code&gt;pthread_join&lt;/code&gt; guarantees the target thread has terminated. Using pthreads makes the code a bit more verbose, and some of the memory management must be done carefully. In particular, &lt;code&gt;self&lt;/code&gt; is retained when specifying it as an argument of &lt;code&gt;NSThread&lt;/code&gt;&amp;#39;s initializer, but will not be retained when using it as an argument to &lt;code&gt;pthread_create&lt;/code&gt;. Note that we still need an &lt;code&gt;NSThread&lt;/code&gt; reference to use &lt;code&gt;performSelector:onThread:withObject:waitUntilDone:&lt;/code&gt;, but there is no way to convert a &lt;code&gt;pthread_t&lt;/code&gt; to an &lt;code&gt;NSThread&lt;/code&gt;. Luckily, &lt;code&gt;+[NSThread currentThread]&lt;/code&gt; can obtain the correct object reference.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;NSCondition&lt;/code&gt; is still used to synchronize thread startup. Because it is not used for any other purpose, it is not necessary to lock the condition before starting the thread. However, to be consistent with previous code, we will follow the previous pattern of creating the thread in a suspended state and resuming it with the condition&amp;#39;s lock held.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ThreadProc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ThreadedComponent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;component&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;__bridge_transfer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ThreadedComponent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;component&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;threadProc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;start&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pthread_create_suspended_np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_pthread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ThreadProc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__bridge_retained&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// _condition was created in -init&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;mach_port_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mach_thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pthread_mach_thread_np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_pthread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;thread_resume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mach_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wait&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;stop&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;performSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_stop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;onThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;withObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;waitUntilDone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;pthread_join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_pthread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;threadProc:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;object&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;@autoreleasepool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;perform&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DoNothingRunLoopCallback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFRunLoopSourceCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopAddSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Obtain the current NSThread before signaling startup is complete.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;_thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSThread&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;currentThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_condition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Keep processing events until the runloop is stopped.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRun&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;CFRunLoopRemoveSource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFRunLoopGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCFRunLoopCommonModes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;CFRelease&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;Code Samples&lt;/h2&gt;
+
+&lt;p&gt;Head on over to &lt;a href=&quot;https://github.com/visigoth/blog-code/tree/master/nsthread_lifecycle&quot;&gt;github&lt;/a&gt; to download code samples for all four working versions of the code above.&lt;/p&gt;
+</description>
+      <pubDate>Sun, 09 Mar 2014 00:00:00 -0800</pubDate>
+      <link>http://shaheengandhi.com//controlling-thread-exit</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//controlling-thread-exit</guid>
+    </item>
+    
+    <item>
+      <title>Synchronizing GCD Dispatch Queues</title>
+      <description>&lt;p&gt;Let&amp;#39;s consider some use cases of GCD dispatch queues. They are often used in producer-consumer relationships for doing asynchronous work, either in a serial or parallel fashion.&lt;/p&gt;
+
+&lt;p&gt;In rare cases, you may need to synchronize the work on your queue with another thread. However, a dispatch queue does not operate on a given thread, and combining synchronization primitives with each block placed on the queue would be complicated and fragile.&lt;/p&gt;
+
+&lt;p&gt;A better method is to pause and resume the execution of a dispatch queue using &lt;code&gt;dispatch_suspend&lt;/code&gt; and &lt;code&gt;dispatch_resume&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2&gt;&lt;code&gt;dispatch_suspend&lt;/code&gt; is Asynchronous&lt;/h2&gt;
+
+&lt;p&gt;But, there&amp;#39;s something curious about &lt;code&gt;dispatch_suspend&lt;/code&gt;. Apple&amp;#39;s documentation for the function says:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The suspension occurs after completion of any blocks running at the time of the call.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The documentation doesn&amp;#39;t tell us whether &lt;code&gt;dispatch_suspend&lt;/code&gt; waits for these blocks to complete before returning, so I created a small &lt;a href=&quot;https://github.com/visigoth/blog-code/blob/master/dispatch_suspend/main.m&quot;&gt;test program&lt;/a&gt; to explore this. It tests this by queueing a block that waits on a condition that only becomes true if &lt;code&gt;dispatch_suspend&lt;/code&gt; is asynchronous. If &lt;code&gt;dispatch_suspend&lt;/code&gt; is synchronous, the application will hang.&lt;/p&gt;
+
+&lt;p&gt;When running this program on OS X 10.9, the program shows &lt;code&gt;dispatch_suspend&lt;/code&gt; is an asynchronous process, so it can&amp;#39;t be used on its own to synchronize a thread with work on a dispatch queue directly. However, there is a way we can build on top of it.&lt;/p&gt;
+
+&lt;h2&gt;Barrier Blocks&lt;/h2&gt;
+
+&lt;p&gt;Another facility provided by dispatch queues are barrier blocks. Barrier blocks work on both serial and concurrent dispatch queues. When submitted to a queue, all blocks ahead of the barrier will complete before the barrier starts execution, and all blocks behind the barrier will only start executing once the barrier is complete. For serial queues, this is the same as queueing any block. For concurrent queues, this ensures ordering of work and is especially handy for our purposes. Submitting a barrier block can be done with &lt;code&gt;dispatch_barrier_async&lt;/code&gt; and &lt;code&gt;dispatch_barrier_sync&lt;/code&gt; (and their function variants).&lt;/p&gt;
+
+&lt;h2&gt;Synchronizing Queues&lt;/h2&gt;
+
+&lt;p&gt;Armed with this knowledge, we can create a blocking synchronize the work done on a dispatch queue with an external thread like so:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;n&quot;&gt;dispatch_barrier_sync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;queue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dispatch_suspend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;queue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Do some stuff&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;dispatch_resume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;queue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Note this doesn&amp;#39;t only wait for running blocks to finish; it flushes any pending work.  To achieve the former semantics, you would need to use synchronization primitives in each of your dispatch queue blocks (without a higher level abstraction).&lt;/p&gt;
+</description>
+      <pubDate>Fri, 14 Feb 2014 00:00:00 -0800</pubDate>
+      <link>http://shaheengandhi.com//synchronizing-gcd-dispatch-queues</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//synchronizing-gcd-dispatch-queues</guid>
+    </item>
+    
+    <item>
+      <title>It&#39;s Time for iOS Default Apps</title>
+      <description>&lt;p&gt;In 2009, the European Commission and Microsoft came to an agreement to provide a screen that offers the user a choice as to which browser should be opened by default upon the selection of a web link. It&amp;#39;s time that people demanded the same of Apple. Already, Apple&amp;#39;s own applications are being steadily replaced with better alternatives. Many people choose to use different camera applications because they are faster, provide better image stabilization features, or simply provide fun filters. I choose to use Chrome when possible as my browser. However, there are times when I am not able to exercise this choice. In particular, this is when the operating system&amp;#39;s ability to highlight text areas that match a web link is used to open that link in a browser. &lt;p /&gt; Similarly, this is true for other items: text that looks like addresses will always open in Apple&amp;#39;s maps app, which we all know to be a disaster when it comes to finding locations, and for which we have an alternative. &lt;p /&gt; There are &lt;a href=&quot;http://www.iphonefaq.org/archives/971788&quot;&gt;certain ways&lt;/a&gt; to change your default browser or other applications, but they generally void your ability to get support from your carrier and are difficult for the average person to use. &lt;p /&gt; Apple should: &lt;p /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Provide for selection of a default web browser&lt;/li&gt;
+&lt;li&gt;Provide for selection of a default maps application&lt;/li&gt;
+&lt;li&gt;Allow applications to provide default sheets, such as send mail, take photo, pick photo, send message, etc.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are &lt;a href=&quot;http://oleb.net/blog/2012/10/remote-view-controllers-in-ios-6/&quot;&gt;signs&lt;/a&gt; that iOS has the functionality to allow this already. When pressed, I&amp;#39;m sure Apple will come up with arguments indicating that disallowing these choices keeps the platform secure and keeps the quality of user experience very high. However, we should remind ourselves that neither Firefox nor Chrome (and for that matter, Safari) would have gained popularity without that original decision. &lt;p /&gt; ~s&lt;/p&gt;
+</description>
+      <pubDate>Tue, 18 Dec 2012 21:16:28 -0800</pubDate>
+      <link>http://shaheengandhi.com//its-time-for-ios-default-apps</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//its-time-for-ios-default-apps</guid>
+    </item>
+    
+    <item>
+      <title>TechCrunch on Google TV</title>
+      <description>&lt;p&gt;TechCrunch &lt;a href=&quot;http://techcrunch.com/2012/06/28/googles-tv-strategy-is-doomed/&quot;&gt;posted&lt;/a&gt;
+about Google TV&amp;rsquo;s impending doom.  A particular quote caught my eye:&lt;/p&gt;
+
+&lt;blockquote class=&quot;posterous_medium_quote&quot;&gt;&lt;p&gt;Second, no one is sure what a smart TV is supposed to be, but GTV isn’t it. No one can quite put their finger on what they want a TV to do. Is it supposed to stream home content? Allow you to watch YouTube on the big screen? Offer ways to tweet from your couch? All those things happen more quickly and more efficiently on laptops and tablets. Why co-opt the biggest screen in the house?&lt;/p&gt;&lt;/blockquote&gt;
+
+&lt;p&gt;This confusion is exactly why I think TVs &lt;a href=&quot;http://blog.brokenrobotllc.com/dumb-tvs-are-the-future&quot;&gt;should be
+dumb&lt;/a&gt;.  The
+smarts are in the palm of your hand.  The TV is best used as a big
+screen that celebrates content.&lt;/p&gt;
+
+&lt;p&gt;~s&lt;/p&gt;
+</description>
+      <pubDate>Sun, 01 Jul 2012 00:47:47 -0700</pubDate>
+      <link>http://shaheengandhi.com//techcrunch-on-google-tv</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//techcrunch-on-google-tv</guid>
+    </item>
+    
+    <item>
+      <title>Apple&#39;s TV is the new Apple TV</title>
+      <description>&lt;p&gt;&lt;a href=&quot;http://techcrunch.com/2012/04/28/no-airplay-is-not-the-new-apple-tv/&quot;&gt;This TechCrunch
+article&lt;/a&gt;,
+written by David McIntosh of Redux, insists that AirPlay is not the
+new Apple TV.  However, it starts from a flawed assumption that Apple
+would need to license the technology to many TV manufacturers.&lt;/p&gt;
+
+&lt;p&gt;The only technology Apple has really cared to license is the dock
+connector, and that was specifically to get an accessory ecosystem
+going in order to sell more devices.  Integrating with TVs isn&amp;rsquo;t going
+to sell more devices, because the users that would buy such a
+television already have a device.  The only immediate incentive Apple
+has to license the technology is to collect a hefty licensing fee, but
+that doesn&amp;rsquo;t amount to much.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s say that licensing fee is $100 per unit (which no TV
+manufacturer is going to pay, but let&amp;rsquo;s give Apple the benefit of the
+doubt).  There were &lt;a href=&quot;http://articles.latimes.com/2012/mar/14/business/la-fi-tn-tv-shipments-20120314&quot;&gt;250
+million&lt;/a&gt;
+television shipments last year.  That&amp;rsquo;s a maximum of $24 billion per
+year, and we know the per-unit fee and the share of TVs using the
+technology would be much smaller.  And with TV shipments falling year
+over year, that number would decrease over time.  For a company that
+does $13 billion a month in revenue, this is quickly becoming chump
+change.&lt;/p&gt;
+
+&lt;p&gt;Another indirect incentive for Apple to license AirPlay would be to
+increase revenue for iTunes content.  But, iTunes was always a ploy to
+attract people to purchasing Apple devices, not vice-versa.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;m still of the opinion that Apple&amp;rsquo;s going to build a TV of its own
+and sell it to the richest consumers who already are invested in
+Apple&amp;rsquo;s media ecosystem.&lt;/p&gt;
+
+&lt;p&gt;~s&lt;/p&gt;
+</description>
+      <pubDate>Sun, 29 Apr 2012 11:10:21 -0700</pubDate>
+      <link>http://shaheengandhi.com//apples-tv-is-the-new-apple-tv</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//apples-tv-is-the-new-apple-tv</guid>
+    </item>
+    
+    <item>
+      <title>Using NSPopover with NSStatusItem</title>
+      <description>&lt;p&gt;Mac OS X Lion supports a new Cocoa object called &lt;code&gt;NSPopover&lt;/code&gt;.  This object
+acts a lot like the popover introduced in CocoaTouch on iPad.  There are
+lots of places normal applications can use &lt;code&gt;NSPopover&lt;/code&gt; naturally.  I
+recently started working on a personal project that uses an &lt;code&gt;NSStatusItem&lt;/code&gt;,
+and wanted to use an &lt;code&gt;NSPopover&lt;/code&gt; to manage the primary user interface for
+the content shown when interacting with the &lt;code&gt;NSStatusItem&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, the interactions between a hidden object called
+&lt;code&gt;NSPopoverWindow&lt;/code&gt; and Mac OS X&amp;rsquo;s &lt;code&gt;NSStatusBarWindow&lt;/code&gt; create some problems.
+ On top of this, having an &lt;code&gt;NSPopover&lt;/code&gt; where the content view contains edit
+fields creates further problems.&lt;/p&gt;
+
+&lt;p&gt;However, I was finally able to get the interactions working correctly (at
+the expense of using the built-in &lt;code&gt;NSPopoverBehavior&lt;/code&gt; styles).  This post
+takes you through the problems and describes my solutions.&lt;/p&gt;
+
+&lt;p&gt;Yes, I could have used the &lt;a href=&quot;https://github.com/shpakovski/Popup/tree/master/Popup&quot;&gt;Popup&lt;/a&gt; project, but I just
+wanted to make &lt;code&gt;NSPopover&lt;/code&gt; work.&lt;/p&gt;
+
+&lt;h2&gt;Initial Code&lt;/h2&gt;
+
+&lt;p&gt;The initial code is pretty simple: just create a custom view and attach it
+to an &lt;code&gt;NSStatusItem&lt;/code&gt; object.  Even though I did not need more than the
+functionality provided by the default &lt;code&gt;NSStatusItem&lt;/code&gt; object, &lt;code&gt;NSPopover&lt;/code&gt;
+requires a view for the &lt;code&gt;showRelativeToRect:ofView:preferredEdge:&lt;/code&gt;
+selector.  I couldn&amp;rsquo;t figure out a way to access the &lt;code&gt;_fView&lt;/code&gt; member of the
+&lt;code&gt;NSStatusItem&lt;/code&gt; that&amp;rsquo;s visible in the debugger, so I was stuck
+re-implementing the basic &lt;code&gt;NSStatusItem&lt;/code&gt; view functionality of an image
+that flips when activated.  I call this &lt;code&gt;BRStatusItemIconView&lt;/code&gt;.  The code
+in the application delegate looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;CodeRay&quot;&gt;
+  &lt;div class=&quot;code&quot;&gt;&lt;pre&gt;NSStatusItem* statusItem = [[NSStatusBar systemStatusBar]
+  statusItemWithLength:32];
+[statusItem setHighlightMode:YES];
+
+_iconView = [[BRStatusItemIconView alloc]
+  initWithStatusItem:statusItem];
+_iconView.image = [NSImage imageNamed:@&amp;quot;Status&amp;quot;];
+_iconView.highlightedImage = [NSImage imageNamed:@&amp;quot;StatusHighlighted&amp;quot;];&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The &lt;code&gt;initWithStatusItem:&lt;/code&gt; selector creates the necessary subviews (since
+it&amp;rsquo;s not loaded from a nib) and attaches itself to &lt;code&gt;statusItem&lt;/code&gt; through
+&lt;code&gt;setView:&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;I used a separate object to be the popover controller and attach itself to
+the &lt;code&gt;NSStatusItem&lt;/code&gt;.  Since I used a custom view, the &lt;code&gt;action&lt;/code&gt; and &lt;code&gt;target&lt;/code&gt;
+properties of the &lt;code&gt;NSStatusItem&lt;/code&gt; couldn&amp;rsquo;t be used.  I created a
+&lt;code&gt;BRStatusItemIconViewDelegate&lt;/code&gt; protocol that had one selector:&lt;/p&gt;
+
+&lt;div class=&quot;CodeRay&quot;&gt;
+  &lt;div class=&quot;code&quot;&gt;&lt;pre&gt;- (void)activated:(BRStatusItemIconView*)sender;&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;When the icon was clicked, it would invoke this selector on a delegate.  My
+&lt;code&gt;BRStatusItemPopoverController&lt;/code&gt; object is the popover&amp;rsquo;s controller and
+attaches itself to the &lt;code&gt;BRStatusIconView&lt;/code&gt; created in the application
+delegate.  The popover was initialized like this:&lt;/p&gt;
+
+&lt;div class=&quot;CodeRay&quot;&gt;
+  &lt;div class=&quot;code&quot;&gt;&lt;pre&gt;_popover = [[NSPopover alloc] init];
+_popover.behavior = NSPopoverBehaviorApplicationDefined;
+_popover.contentViewController = viewController;
+_popover.delegate = self;
+_popover.animates = NO;&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Note I used &lt;code&gt;NSPopoverBehaviorApplicationDefined&lt;/code&gt;, the importance of which
+will be discussed later.  The &lt;code&gt;viewController&lt;/code&gt; here was a controller for a
+complex view that includes an edit field, which is also important to note.&lt;/p&gt;
+
+&lt;p&gt;So, now all I needed was to open and close the &lt;code&gt;NSPopover&lt;/code&gt;!  The simple
+version of the code in &lt;code&gt;BRStatusItemPopoverController&lt;/code&gt; looked like this:&lt;/p&gt;
+
+&lt;div class=&quot;CodeRay&quot;&gt;
+  &lt;div class=&quot;code&quot;&gt;&lt;pre&gt;- (void)close {
+  [_popover close];
+  _shown = NO;
+}
+
+- (void)open {
+  BRStatusItemIconView* view = _statusItem.view;
+  [_popover showRelativeToRect:view.bounds ofView:view
+    preferredEdge:NSMaxYEdge];
+  _shown = YES;
+}
+
+- (void)activated:(BRStatusItemIconView*)sender {
+  if (_shown) {
+    [self close];
+  } else {
+    [self open];
+  }
+}&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Hit run to try it out, and&amp;hellip; it works!  However, if the popover&amp;rsquo;s content
+view contained an &lt;code&gt;NSTextField&lt;/code&gt;, you&amp;rsquo;d find that the field refuses to
+become first responder!  Even making sure the field was marked editable in
+Interface Builder didn&amp;rsquo;t help.  #FAIL.&lt;/p&gt;
+
+&lt;h2&gt;Fixing Edit Fields&lt;/h2&gt;
+
+&lt;p&gt;According to &lt;a href=&quot;http://stackoverflow.com/questions/7214273/nstextfield-on-nspopover&quot;&gt;this&lt;/a&gt;
+StackOverflow question, the problem with the &lt;code&gt;NSTextField&lt;/code&gt; is the parent
+window&amp;rsquo;s inability to become the key window.  The answer in that question
+is to write a global category for your application:&lt;/p&gt;
+
+&lt;div class=&quot;CodeRay&quot;&gt;
+  &lt;div class=&quot;code&quot;&gt;&lt;pre&gt;NSWindow+canBecomeKeyWindow.h
+@interface NSWindow (canBecomeKeyWindow)
+
+@end
+
+NSWindow+canBecomeKeyWindow.m
+@implementation NSWindow (canBecomeKeyWindow)
+
+//This is to fix a bug with 10.7 where an NSPopover with a text field
+//cannot be edited if its parent window won&#39;t become key
+//The pragma statements disable the corresponding warning for
+//overriding an already-implemented method
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored &amp;quot;-Wobjc-protocol-method-implementation&amp;quot;
+- (BOOL)canBecomeKeyWindow
+{
+    return YES;
+}
+#pragma clang diagnostic pop
+
+@end&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Trying this out appears to work when you click the status item.  You can
+click the &lt;code&gt;NSTextField&lt;/code&gt; and it becomes editable!  But, this has created a
+subtle problem: the status item only works correctly if the application
+that owns it is active.  When inactive, the status item weirdly requires a
+double click to activate it, and even then, the double click sends two
+&lt;code&gt;mouseDown:&lt;/code&gt; events to &lt;code&gt;BRStatusItemIconView&lt;/code&gt;, causing the interaction to
+be out of phase with the user&amp;rsquo;s intention.&lt;/p&gt;
+
+&lt;h2&gt;Fixing the double click&lt;/h2&gt;
+
+&lt;p&gt;Long story short, we need to control when the &lt;code&gt;NSStatusBarWindow&lt;/code&gt; window,
+the parent of &lt;code&gt;BRStatusItemIconView&lt;/code&gt;, is allowed to become key.  When the
+popover is opened, we want that to happen so that the popover&amp;rsquo;s content
+view can become first responder.  When the popover is closed, we want to go
+back to the original behavior so that input to &lt;code&gt;BRStatusItemIconView&lt;/code&gt;
+doesn&amp;rsquo;t get blocked.  But, we aren&amp;rsquo;t familiar with the original behavior
+because it&amp;rsquo;s hidden by the original implementation of
+&lt;code&gt;canBecomeKeyWindow:&lt;/code&gt;.  Using a technique called &lt;a href=&quot;http://cocoadev.com/?MethodSwizzling&quot;&gt;method swizzling&lt;/a&gt; that helps us do this.  Note that
+there is an updated version of method swizzling discussed &lt;a href=&quot;http://kevin.sb.org/2006/12/30/method-swizzling-reimplemented/&quot;&gt;here&lt;/a&gt;, but I&amp;rsquo;ve
+not implemented it in my code yet.  The new code looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;CodeRay&quot;&gt;
+  &lt;div class=&quot;code&quot;&gt;&lt;pre&gt;#import &amp;quot;NSWindow_canBecomeKeyWindow.h&amp;quot;
+#include
+
+BOOL shouldBecomeKeyWindow;
+NSWindow* windowToOverride;
+
+@implementation NSWindow (canBecomeKeyWindow)
+
+//This is to fix a bug with 10.7 where an NSPopover with a text field
+//cannot be edited if its parent window won&#39;t become key
+//The pragma statements disable the corresponding warning for
+//overriding an already-implemented method
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored &amp;quot;-Wobjc-protocol-method-implementation&amp;quot;
+- (BOOL)popoverCanBecomeKeyWindow
+{
+    if (self == windowToOverride) {
+        return shouldBecomeKeyWindow;
+    } else {
+        return [self popoverCanBecomeKeyWindow];
+    }
+}
+
++ (void)load
+{
+    method_exchangeImplementations(
+      class_getInstanceMethod(self, @selector(canBecomeKeyWindow)),
+      class_getInstanceMethod(self, @selector(popoverCanBecomeKeyWindow)));
+}
+#pragma clang diagnostic pop
+
+@end&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Now, &lt;code&gt;shouldBecomeKeyWindow&lt;/code&gt; and &lt;code&gt;windowToOverride&lt;/code&gt; just need to be set
+correctly.  As I said above, we want &lt;code&gt;windowToOverride&lt;/code&gt; to be the
+&lt;code&gt;NSStatusBarWindow&lt;/code&gt; and &lt;code&gt;shouldBecomeKeyWindow&lt;/code&gt; to change based on the
+status of the popover being visible.  The new
+&lt;code&gt;BRStatusItemPopoverController&lt;/code&gt; code is this:&lt;/p&gt;
+
+&lt;div class=&quot;CodeRay&quot;&gt;
+  &lt;div class=&quot;code&quot;&gt;&lt;pre&gt;- (void)close
+{
+    [_popover close];
+    shouldBecomeKeyWindow = NO;
+    _shown = NO;
+}
+
+- (void)open
+{
+    BRStatusItemIconView* view = (BRStatusItemIconView*)_statusItem.view;
+
+    shouldBecomeKeyWindow = YES;
+    [_popover showRelativeToRect:view.bounds ofView:view
+      preferredEdge:NSMaxYEdge];
+
+    windowToOverride = view.window;
+    [view.window becomeKeyWindow];
+    _shown = YES;
+}&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;h2&gt;Adding transient behavior&lt;/h2&gt;
+
+&lt;p&gt;Finally!  Things work as they should.  However, one cool thing about
+&lt;code&gt;NSPopover&lt;/code&gt;&amp;rsquo;s default functionality is its ability to be a transient
+presence for the user.  For applications that use the status bar, this is
+good behavior.  However, because &lt;code&gt;NSPopoverBehaviorApplicationDefined&lt;/code&gt; was
+used, we have to duplicate that functionality.  Basically, we want the
+popover to be able to disappear when the application resigns being active.
+ This can be done by listening to the appropriate notifications in
+&lt;code&gt;BRStatusItemPopoverController&lt;/code&gt; and changing the ability of the
+&lt;code&gt;NSStatusBarWindow&lt;/code&gt; to become key, or close the popover.&lt;/p&gt;
+
+&lt;div class=&quot;CodeRay&quot;&gt;
+  &lt;div class=&quot;code&quot;&gt;&lt;pre&gt;- (void)applicationDidResignActive:(NSNotification*)n
+{
+    if ((self.behavior == BRStatusItemPopoverBehaviorTransient) &amp;amp;&amp;amp;
+       _shown) {
+        [self close];
+    } else if (self.behavior == BRStatusItemPopoverBehaviorPermanent) {
+        shouldBecomeKeyWindow = NO;
+    }
+}&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Apple has some bugs to fix related to &lt;code&gt;NSPopover&lt;/code&gt; and &lt;code&gt;NSStatusBarWindow&lt;/code&gt;.
+ It seems obvious to me that applications that live in the status bar
+should use &lt;code&gt;NSPopover&lt;/code&gt; to present complex user interfaces, but the
+complexity of doing so right now is too high.&lt;/p&gt;
+</description>
+      <pubDate>Sat, 21 Apr 2012 18:22:00 -0700</pubDate>
+      <link>http://shaheengandhi.com//using-nspopover-with-nsstatusitem</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//using-nspopover-with-nsstatusitem</guid>
+    </item>
+    
+    <item>
+      <title>Apple&#39;s TV Playbook</title>
+      <description>&lt;p&gt;I&amp;rsquo;ve written a &lt;a href=&quot;http://blog.brokenrobotllc.com/appleinsider-piper-apples-39b-component-deal&quot;&gt;number&lt;/a&gt;
+&lt;a href=&quot;http://blog.brokenrobotllc.com/airplay-everywhere&quot;&gt;of&lt;/a&gt;
+&lt;a href=&quot;http://blog.brokenrobotllc.com/television-side-channel-interaction&quot;&gt;times&lt;/a&gt;
+&lt;a href=&quot;http://blog.brokenrobotllc.com/how-apple-tv-could-disrupt-game-consoles&quot;&gt;about&lt;/a&gt;
+&lt;a href=&quot;http://blog.brokenrobotllc.com/how-apple-tv-could-have-been-awesome&quot;&gt;television&lt;/a&gt;.
+ When I wrote what I thought Apple TV should have been, I thought
+things like a CableCARD DVR and a DVD player would be key features for
+me to buy it.  If I could be Apple in 2011 designing a TV, I think I&amp;rsquo;d
+do it this way:&lt;/p&gt;
+
+&lt;h2&gt;Industrial Design&lt;/h2&gt;
+
+&lt;p&gt;Televisions are known for black or grey bezels with various curves,
+markings, buttons, LEDs, grills (for speakers) and technology
+brandings.  Some of these are functional, while others are meant to
+distinguish them from the competition.  I would think Apple will
+either borrow from the glass &amp;amp; white plastic bezel of iOS devices, or
+borrow from the brushed aluminum motif of the Cinema Display.  The
+bezel itself will be clean; there might be one LED on it to indicate
+it is on, though I doubt even that.  I&amp;rsquo;m guessing there will only be a
+power button, because you won&amp;rsquo;t need to control the device at the TV
+itself.  Apple won&amp;rsquo;t need any branding on the device other than its
+own logo, and I think the rest of the design will be so clean for a TV
+that people won&amp;rsquo;t mistake it for anything but the Apple TV if it
+didn&amp;rsquo;t have that either.&lt;/p&gt;
+
+&lt;h2&gt;Photo Frame&lt;/h2&gt;
+
+&lt;p&gt;It used to be that people adorned their walls at home with beautiful
+art.  Then, the television came along and ruined everything: the
+center of attention became a garish box rather than a piece of art.
+Considering the industrial design of the TV itself is likely going to
+be quite nice, it seems it would go to waste if it was off all the
+time.  I could see Apple extending their iPad photo frame
+functionality to the television, where it automatically starts showing
+content while it&amp;rsquo;s on but not playing anything.  Alternatively, you
+could manually start it by holding/touching the power button.&lt;/p&gt;
+
+&lt;h2&gt;Inputs &amp;amp; Outputs&lt;/h2&gt;
+
+&lt;p&gt;I would put four connectors on this device: power, HDMI in, HDMI out,
+and a network adapter.  Unfortunately, no one has invented wireless
+power that can supply the wattage a television needs, so that one has
+to be there.  HDMI out is an easy one: if you&amp;rsquo;re a home theater nut,
+you&amp;rsquo;ll want to hear the audio through your speaker setup.  The network
+adapter is understandable for the case where wifi isn&amp;rsquo;t available or
+has low signal quality.  Finally, when it comes to HDMI in, my logic
+goes like this: either you are a simple consumer that has a cable box
+and perhaps a DVD player, or you are a home theater nut and you have
+lots of components and a receiver.  If you&amp;rsquo;re the former category,
+Apple wants to replace at least one of those boxes.  For these people,
+Apple might automatically switch to the HDMI in signal when it detects
+something is on.  That way, if you want to use your cable box or DVD
+player, you only have to turn it on and not futz with some other
+mechanism.  If you&amp;rsquo;re in the latter category, you&amp;rsquo;ll use the receiver
+to switch between inputs.&lt;/p&gt;
+
+&lt;p&gt;Apple might throw in an IR receiver just as a throw back to people who
+have the old Apple remote.&lt;/p&gt;
+
+&lt;h2&gt;Remote Control&lt;/h2&gt;
+
+&lt;p&gt;I mentioned that there wouldn&amp;rsquo;t be any buttons on the device if I were
+to design it.  I believe Apple will place remote command and control
+on iOS devices.  iPhone and iPod Touch users will get a simple
+experience for command and control.  It depends on the content service
+that goes along with the device, but if they provide a cable-style
+service, I could see a simple electronic program guide primarily
+driven by search.  iPad users will get a better experience: a natural
+electronic program guide due to the device&amp;rsquo;s larger screen.&lt;/p&gt;
+
+&lt;h2&gt;AirPlay&lt;/h2&gt;
+
+&lt;p&gt;More importantly, Apple will recognize that discovery and consumption
+lie in two different places.  The TV display is great for consumption,
+but the human interface for discovery has always been poor, especially
+on archaic cable boxes.  Many people think Siri will be an important
+part of Apple TV&amp;rsquo;s value proposition, but I&amp;rsquo;m not convinced of it.
+Rather, Apple already has a great, reconfigurable remote control in
+iOS devices.  iOS 5&amp;rsquo;s ability to use AirPlay wirelessly will enable
+Apple to create a discovery experience that leverages the TV so that
+the family doesn&amp;rsquo;t have to huddle around an iPhone or iPad, but the
+primary interaction will take place on one of those devices.&lt;/p&gt;
+
+&lt;h2&gt;Configuration&lt;/h2&gt;
+
+&lt;p&gt;The only reason I could see Apple making the screen a touchscreen is
+for configuring its networking.  However, I don&amp;rsquo;t think they will do
+that.  &lt;a href=&quot;http://www.macrumors.com/2011/12/11/apple-planning-to-add-bluetooth-support-for-airplay-and-expand-ios-accessory-capabilities/&quot;&gt;This article&lt;/a&gt;
+sounds very prescient.  Configuration over bluetooth from an iOS
+device would be understandable for so many people, it makes the most
+sense.  Alternatively, for people who use wired ethernet instead,
+they&amp;rsquo;ll be able to use iTunes from their computer to perform the
+configuration and then disconnect the cable if they desire.&lt;/p&gt;
+
+&lt;h2&gt;Content&lt;/h2&gt;
+
+&lt;p&gt;I honestly have no idea what Apple is going to do with content.
+Everyone is expecting some amazing cable-style subscription service.
+I have to question whether that will happen because Apple couldn&amp;rsquo;t
+compete on price with cable companies since the media companies are
+not going to be fooled into giving Apple preferential deal terms.  At
+least, I would think they wouldn&amp;rsquo;t.&lt;/p&gt;
+
+&lt;p&gt;~s&lt;/p&gt;
+</description>
+      <pubDate>Mon, 09 Jan 2012 19:36:28 -0800</pubDate>
+      <link>http://shaheengandhi.com//apples-tv-playbook</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//apples-tv-playbook</guid>
+    </item>
+    
+    <item>
+      <title>nest</title>
+      <description>&lt;p&gt;In the three months that I have not written on this blog, &lt;a href=&quot;http://techcrunch.com/2011/08/18/its-official-hp-kills-off-webos-phones-and-the-touchpad/&quot;&gt;HP killed
+webOS&lt;/a&gt;,
+&lt;a href=&quot;http://amazon.com/kindle&quot;&gt;Amazon became a real device maker&lt;/a&gt;, and
+&lt;a href=&quot;http://apple.com/stevejobs&quot;&gt;Steve Jobs passed away&lt;/a&gt;.  Technology
+really does move fast &amp;ndash; I already have to &lt;a href=&quot;http://blog.brokenrobotllc.com/how-hp-became-2&quot;&gt;eat my words regarding
+HP&lt;/a&gt;.  I still think
+HP&amp;rsquo;s strategy held water, but it was Mark Hurd&amp;rsquo;s strategy and not in
+Leo Apothekar&amp;rsquo;s playbook.&lt;/p&gt;
+
+&lt;p&gt;The thing that got me excited enough to write something again was the
+announcement of &lt;a href=&quot;http://nest.com&quot;&gt;nest labs&#39; thermostat&lt;/a&gt;.  Now that
+the edges of technology have pushed communication forward, it&amp;rsquo;s time
+that it helped the every day activities with which we are already
+familiar.  nest is a great name because, to me, it obviously implies
+the grandiose nature of the company&amp;rsquo;s goals: to change the
+technologies used within our homes every day to be more efficient.&lt;/p&gt;
+
+&lt;p&gt;A direction I think nest will go in the future is fridges.  &lt;a href=&quot;http://business.blogs.cnn.com/2011/05/13/30-of-all-worlds-food-goes-to-waste/&quot;&gt;30% of
+food is wasted&lt;/a&gt;,
+and a good portion comes from fridges at home.  Remember being
+promised a fridge that would know when food had gone bad and ordered
+more groceries?  Seems like something that could be done in the
+future.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;ve got high hopes for nest: The world needs people who are willing
+to bring design and usability to products that live in perpetual
+mediocrity.  We can&amp;rsquo;t wait for Apple to get bored with media
+consumption to go start building smart lamps.&lt;/p&gt;
+
+&lt;p&gt;~s&lt;/p&gt;
+</description>
+      <pubDate>Wed, 26 Oct 2011 23:10:00 -0700</pubDate>
+      <link>http://shaheengandhi.com//nest</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//nest</guid>
+    </item>
+    
+    <item>
+      <title>Cocoa: Rotation in Scrollable Document Views</title>
+      <description>&lt;p&gt;I&amp;rsquo;m continuing work on my &lt;a href=&quot;http://blog.brokenrobotllc.com/archive/11/2010&quot;&gt;mac
+project&lt;/a&gt;, which
+involves a scalable document that can be embedded in an NSScrollView.
+I recently wanted to add orientation to the set of valid
+transformations.  While I&amp;rsquo;m sure there are more generic solutions that
+involve setting a composite affine transformation on the underlying
+CALayer, I wanted something that I could implement in an hour or so.
+I ran into some issues that I thought I&amp;rsquo;d write about in hopes of
+saving other people some time.&lt;/p&gt;
+
+&lt;p&gt;When coding against the SDK for OS X Lion, NSView has a
+&lt;code&gt;setFrameCenterRotation:&lt;/code&gt; selector, which is very convenient for
+rotating about the center of the view.  If you need to run against
+older versions of OS X, you can use a combination of &lt;code&gt;setFrameOrigin:&lt;/code&gt;
+and &lt;code&gt;setFrameRotation:&lt;/code&gt; to accomplish the same thing.  These rotations
+don&amp;rsquo;t affect the internal coordinate system of the NSView, but change
+its frame in the superview &amp;ndash; also very convenient when it comes to
+performing layout in the rotated view.&lt;/p&gt;
+
+&lt;p&gt;I experimented with these for my document view&amp;rsquo;s transformations and
+found some quirks.  Firstly, I tried to simply rotate the
+NSScrollView&amp;rsquo;s &lt;code&gt;documentView&lt;/code&gt;.  From my previous post, this is the
+&lt;code&gt;HostView&lt;/code&gt; object.  That didn&amp;rsquo;t go quite as well as I had hoped: the
+rotation occurred around the incorrect locus, and the scroll view got
+very confused about positioning.  When I performed the rotation, the
+document would jump to an odd place, and then when I moved the scroll
+bars, the document would jump back to the origin.&lt;/p&gt;
+
+&lt;p&gt;After that, I attempted to rotate the &lt;code&gt;_docView&lt;/code&gt; inside the &lt;code&gt;HostView&lt;/code&gt;
+object.  Success!  At least, initial success: while the rotation
+occurred and the document stayed stable inside the scroll view, the
+dimensions of the &lt;code&gt;HostView&lt;/code&gt; object stayed the same and the &lt;code&gt;_docView&lt;/code&gt;
+was positioned incorrectly.  I found that the
+&lt;code&gt;NSViewFrameDidChangeNotification&lt;/code&gt; was still being raised.  When I
+analyzed the newly calculated frame for the &lt;code&gt;HostView&lt;/code&gt;, I found the
+width and height were the same as the original, when it should have
+been changed.&lt;/p&gt;
+
+&lt;p&gt;Changing the code in &lt;code&gt;updateFrame:&lt;/code&gt; to detect the &lt;code&gt;_docView&lt;/code&gt; in
+landscape orientation and transforming the frame appropriately makes
+the scroll view recalculate its scroll extents correctly.  There&amp;rsquo;s
+still the problem of the incorrectly positioned document.  I&amp;rsquo;m not
+sure why Cocoa does this, but when calculating the frame for a
+rotation, the view would consistently get shifted by a size
+proportional to the size of the view.  I had to manually adjust the
+frame after the rotation had adjusted it.&lt;/p&gt;
+
+&lt;p&gt;After all is said and done, the new code looks like this.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/visigoth/715903.js&quot;&gt;&lt;/script&gt;
+</description>
+      <pubDate>Sat, 09 Jul 2011 11:17:27 -0700</pubDate>
+      <link>http://shaheengandhi.com//cocoa-rotation-in-scrollable-document-views</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//cocoa-rotation-in-scrollable-document-views</guid>
+    </item>
+    
+    <item>
+      <title>3-D in Movie Theaters</title>
+      <description>&lt;p&gt;&lt;a href=&quot;http://www.nytimes.com/2011/05/30/business/media/30panda.html?partner=rss&amp;amp;emc=rss&quot;&gt;This article&lt;/a&gt; reminded me that I wanted to write about 3-D movies. &lt;p /&gt; Many people have written about how 3-D won&amp;#39;t work due to physiological &lt;br /&gt;issues with eye strain and wearing glasses for extended periods of &lt;br /&gt;time. While these issues are real, I have faith that technology will &lt;br /&gt;get to the point where these issues are mitigated if not eliminated. &lt;p /&gt; Everyone knows that movies are entertainment, and as such, an &lt;br /&gt;unnecessary good. The market has already priced out this good: &lt;br /&gt;entertain me for about 2 hours and I will pay $10 for that &lt;br /&gt;entertainment. Theaters have thus far priced 3-D movies as a marginal &lt;br /&gt;good: 3-D is better and thus should be higher value. The only problem &lt;br /&gt;is, it isn&amp;#39;t (or at best, the margin is short lived). &lt;p /&gt; I wonder if &amp;quot;talkies&amp;quot; demanded a higher ticket price when they were introduced? &lt;p /&gt; Once 3-D movies cost the same as a regular projection, they will &lt;br /&gt;simply become the norm at theaters because all the other reasons to go &lt;br /&gt;to the theater (timed releases, big screen, popcorn?) will have &lt;br /&gt;eroded. The theater is already becoming a throw-away entertainment &lt;br /&gt;activity, and 3-D will be the only thing keeping them alive, until the &lt;br /&gt;next technology comes along. Personal surround sound, anyone? &lt;p /&gt; ~s&lt;/p&gt;
+</description>
+      <pubDate>Mon, 30 May 2011 20:27:46 -0700</pubDate>
+      <link>http://shaheengandhi.com//3-d-in-movie-theaters</link>
+      <guid isPermaLink="true">http://shaheengandhi.com//3-d-in-movie-theaters</guid>
+    </item>
+    
+  </channel>
+</rss>

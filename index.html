@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <title>shaheen gandhi | blog</title>
+    <meta name="description" content="programming cocoa and ios" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- fb open graph tags -->
+    <meta property="og:title" content="shaheen gandhi | blog" />
+    <meta property="og:url" content="http://shaheengandhi.com/index.html" />
+    <meta property="og:site_name" content="shaheen gandhi | blog" />
+    <meta property="og:type" content="blog" />
+
+    <link rel="alternate" type="application/rss+xml" title="shaheen gandhi | blog" href="http://shaheengandhi.com/feed.xml">
+    <link rel="stylesheet" type="text/css" href="/assets/css/app.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Open+Sans:700,400" />
+    <script src="/bower_components/modernizr/modernizr.js"></script>
+
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-47069804-1', 'shaheengandhi.com');
+    ga('send', 'pageview');
+
+</script>
+</head>
+<body>
+<div id="fb-root">
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=134486209909433";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script></div>
+
+  <div class="off-canvas-wrap">
+    <div class="inner-wrap">
+
+      <aside class="left-off-canvas-menu">
+        <ul class="off-canvas-list">
+          <li><label class="first">shaheen gandhi | blog</label></li>
+          <li><a href="/">Home</a></li>
+          <li><a href="/feed.xml">RSS</a></li>
+        </ul>
+
+        <hr />
+
+        <ul class="off-canvas-list">
+          <li><label class="first">Topics</label></li>
+          <li><a href="/tag/tv">#tv (18)</a></li> <li><a href="/tag/video">#video (17)</a></li> <li><a href="/tag/apple">#apple (15)</a></li> <li><a href="/tag/programming">#programming (9)</a></li> <li><a href="/tag/cocoa">#cocoa (7)</a></li> <li><a href="/tag/ios">#ios (7)</a></li> <li><a href="/tag/mobile">#mobile (6)</a></li> <li><a href="/tag/games">#games (5)</a></li> <li><a href="/tag/gadgets">#gadgets (4)</a></li> <li><a href="/tag/personal">#personal (3)</a></li> <li><a href="/tag/film">#film (3)</a></li> <li><a href="/tag/media">#media (2)</a></li> <li><a href="/tag/osx">#osx (1)</a></li> <li><a href="/tag/microsoft">#microsoft (1)</a></li> <li><a href="/tag/creativity">#creativity (1)</a></li> <li><a href="/tag/math">#math (1)</a></li> <li><a href="/tag/tech">#tech (1)</a></li> <li><a href="/tag/hardware">#hardware (1)</a></li>
+        </ul>
+      </aside>
+
+      <nav class="tab-bar hide-for-medium-up">
+        <a class="left-off-canvas-toggle menu-icon show-for-small"><span>Menu</span></a>
+      </nav>
+
+      <section role="main">
+        <div class="row">
+          <div class="medium-8 medium-centered columns">
+            <div class="row">
+              <div class="large-3 medium-4 medium-uncentered columns hide-for-small sidebar">
+                <div class="bio">
+                  <a class="profile-picture" href="/">
+                    <img src="/assets/images/profile.jpg" alt="shaheen gandhi | blog" />
+                  </a>
+
+                  <div class="author">Shaheen Gandhi</div>
+
+                  <div class="description">
+                    <p>I am a software engineer working on embedded hardware-software systems.  I built Xbox and Courier operating system internals, mobile infrastructure at Facebook, and now work at Oculus Research on the future of VR.</p>
+                  </div>
+
+                  <ul class="small-block-grid-4 social-accounts">
+                    <li><a href="/feed.xml">
+                      <span class="fa-stack rss">
+                        <i class="fa fa-circle fa-stack-2x"></i>
+                        <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                      </span>
+                    </a></li>
+                    <li><a href="http://twitter.com/visigoth">
+                      <span class="fa-stack twitter">
+                        <i class="fa fa-circle fa-stack-2x"></i>
+                        <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                      </span>
+                    </a></li>
+                    <li><a href="http://facebook.com/shaheen">
+                      <span class="fa-stack facebook">
+                        <i class="fa fa-circle fa-stack-2x"></i>
+                        <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                      </span>
+                    </a></li>
+                    <li><a href="http://github.com/visigoth">
+                      <span class="fa-stack github">
+                        <i class="fa fa-circle fa-stack-2x"></i>
+                        <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                      </span>
+                    </a></li>
+                  </ul>
+                </div>
+
+                <!--
+                <form id="subscribe_form" action="http://shaheengandhi.us2.list-manage.com/subscribe/post?u=7c5ac886805e86c7228040973&amp;id=cc1838ba6f" method="post" class="validate" target="_blank" novalidate>
+                  <div class="row collapse">
+                    <div class="small-10 columns">
+                      <input class="email" type="email" value="" name="EMAIL" placeholder="subscribe via email" required>
+                    </div>
+                    <div class="small-2 columns">
+                      <input type="submit" value="&#xf0a9" class="fa button postfix">
+                    </div>
+                  </div>
+                </form>
+                -->
+
+                <nav id="archive">
+                  <ul class="side-nav">
+                    <li class="heading">Topics</li>
+                    <li><a href="/tag/tv">#tv (18)</a></li> <li><a href="/tag/video">#video (17)</a></li> <li><a href="/tag/apple">#apple (15)</a></li> <li><a href="/tag/programming">#programming (9)</a></li> <li><a href="/tag/cocoa">#cocoa (7)</a></li> <li><a href="/tag/ios">#ios (7)</a></li> <li><a href="/tag/mobile">#mobile (6)</a></li> <li><a href="/tag/games">#games (5)</a></li> <li><a href="/tag/gadgets">#gadgets (4)</a></li> <li><a href="/tag/personal">#personal (3)</a></li> <li><a href="/tag/film">#film (3)</a></li> <li><a href="/tag/media">#media (2)</a></li> <li><a href="/tag/osx">#osx (1)</a></li> <li><a href="/tag/microsoft">#microsoft (1)</a></li> <li><a href="/tag/creativity">#creativity (1)</a></li> <li><a href="/tag/math">#math (1)</a></li> <li><a href="/tag/tech">#tech (1)</a></li> <li><a href="/tag/hardware">#hardware (1)</a></li>
+                  </ul>
+                </nav>
+              </div>
+              <div class="large-9 medium-8 medium-uncentered columns">
+                <main class="content" role="main">
+  
+  <article class="post">
+    <header class="post-header">
+      <div class="post-title"><a href="/controlling-thread-exit">Controlling How NSThread and NSRunLoop Exit</a></div>
+    </header>
+    <section class="post-content">
+      <p>While most concurrency can be dealt with by using GCD dispatch queues, there are some things for which you will want to use a separate <code>NSThread</code>. For instance, concurrent network programming remains mostly in this area. You may consider using the popular <a href="https://github.com/robbiehanson/CocoaAsyncSocket"><code>CocoaAsyncSocket</code></a> library, which abstracts away much of the complexity of socket programming on iOS. But, for the sake of this post, assume some work requires a separate thread, and we desire to cleanly start and stop the thread. That is, when we decide to start or stop the thread, we want to ensure it has been initialized or destroyed before moving on.</p>
+
+<p>You can get the final version of the code example below at <a href="https://github.com/visigoth/blog-code/tree/master/nsthread_lifecycle">github</a>.</p>
+
+<h2>Thread Setup</h2>
+
+<p>Remember that threads are an artefact of the operating system and not the objective-c runtime. That means all the nice stuff like an <code>NSAutoreleasePool</code> and an <code>NSRunLoop</code> need to be managed by the thread&#39;s top level code. Here is a code snippet of a thread&#39;s main method that sets up an autorelease pool as well as starts pumping <code>NSRunLoop</code>.</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">start</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">_thread</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">_thread</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSThread</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithTarget</span><span class="p">:</span><span class="nb">self</span> <span class="nl">selector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">threadProc</span><span class="p">:)</span> <span class="nl">object</span><span class="p">:</span><span class="nb">nil</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">threadProc:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">ignored</span>
+<span class="p">{</span>
+  <span class="k">@autoreleasepool</span> <span class="p">{</span>
+    <span class="c1">// Startup code here</span>
+
+    <span class="c1">// Just spin in a tight loop running the runloop.</span>
+    <span class="k">do</span> <span class="p">{</span>
+      <span class="p">[[</span><span class="bp">NSRunLoop</span> <span class="n">currentRunLoop</span><span class="p">]</span> <span class="nl">runUntilDate</span><span class="p">:[</span><span class="bp">NSDate</span> <span class="nl">dateWithTimeIntervalSinceNow</span><span class="p">:</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="nb">TRUE</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>This code has many problems. Note that each run of the runloop has a timeout of 1 second. When the runloop has nothing to do for extended periods of time, the thread will still wake up every second and go through the <code>while</code> loop&#39;s code, only to end up sitting in the runloop&#39;s wait condition. That burns CPU and battery. Also, this thread has no exit condition. Even if we want the thread to live until the end of the application&#39;s life, we probably want a way to shut it down cleanly. Here&#39;s an enumeration of the problems we want to fix:</p>
+
+<ol>
+<li>Unsure when the thread is ready for work</li>
+<li>Never goes to sleep</li>
+<li>No way to exit the thread cleanly</li>
+</ol>
+
+<p>Solving all three problems at once is tricky.  Fixing #2 means keeping the runloop asleep, preferrably waking only when there is work to be done (being notified by a runloop source). But, that makes it difficult to exit the thread in a timely manner.</p>
+
+<h2>Wait for Infinity</h2>
+
+<p>How can we make <code>NSRunLoop</code> wait for infinity?  The goal is to make sure that the thread goes to sleep.  Looking at the documentation for <code>runUntilDate:</code>, this is not the case:</p>
+
+<blockquote>
+<p>If no input sources or timers are attached to the run loop, this method exits immediately; otherwise, it runs the receiver in the NSDefaultRunLoopMode by repeatedly invoking runMode:beforeDate: until the specified expiration date.</p>
+</blockquote>
+
+<p>The second sentence means this code keeps spinning on the CPU, which is the exact opposite of our desired behavior.  A better alternative is <code>runMode:beforeDate:</code>, for which the documentation reads:</p>
+
+<blockquote>
+<p>If no input sources or timers are attached to the run loop, this method exits immediately and returns NO; otherwise, it returns after either the first input source is processed or limitDate is reached.</p>
+</blockquote>
+
+<p>At least there&#39;s a chance the thread will sleep when using this method. However, the thread still runs in a continuous loop when there are no sources or timers. If you are only using a run loop to dispatch <code>performSelector:</code> calls, you need to add a runloop source of your own to make the thread sleep. As a side effect, it would be effective to use this source to send work to the thread, but that is an exercise left to the reader.</p>
+
+<p>One last thing: what value of <code>NSDate</code> should be used? Any large value is fine, as waking the thread once a day is a large enough to keep the thread silent. <code>+[NSDate distantFuture]</code> is a convenient factory for such a date.</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">static</span> <span class="kt">void</span> <span class="nf">DoNothingRunLoopCallback</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">info</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">threadProc:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">ignored</span>
+<span class="p">{</span>
+  <span class="k">@autoreleasepool</span> <span class="p">{</span>
+    <span class="n">CFRunLoopSourceContext</span> <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">perform</span> <span class="o">=</span> <span class="n">DoNothingRunLoopCallback</span><span class="p">;</span>
+
+    <span class="n">CFRunLoopSourceRef</span> <span class="n">source</span> <span class="o">=</span> <span class="n">CFRunLoopSourceCreate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">context</span><span class="p">);</span>
+    <span class="n">CFRunLoopAddSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+
+    <span class="k">do</span> <span class="p">{</span>
+      <span class="p">[[</span><span class="bp">NSRunLoop</span> <span class="n">currentRunLoop</span><span class="p">]</span> <span class="nl">runMode</span><span class="p">:</span><span class="n">NSDefaultRunLoopMode</span>
+                               <span class="nl">beforeDate</span><span class="p">:[</span><span class="bp">NSDate</span> <span class="n">distantFuture</span><span class="p">]];</span>
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="nb">TRUE</span><span class="p">);</span>
+
+    <span class="n">CFRunLoopRemoveSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+    <span class="n">CFRelease</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2>The exit condition</h2>
+
+<p>Now that the thread sleeps forever, how can we ensure a clean shutdown of the thread? It&#39;s entirely possible to use <code>+[NSThread exit]</code> to kill the currently running thread. But, this does not clean up stack references to heap objects (like the runloop source that is created), drain the top level autorelease pool, nor allows the thread to flush any remaining work. Instead, we need to make the runloop stop sleeping in order to exit <code>runMode:beforeDate:</code>, and we need a condition the thread can check in order to know it&#39;s time to shut down.</p>
+
+<p><code>NSRunLoop</code>&#39;s conditions for exiting <code>runMode:beforeDate:</code> are somewhat limited. Its return values being <code>YES</code> (when the runloop processed an input source or if the timeout was reached) or <code>NO</code> (when the runloop could not be started) aren&#39;t great. Given that the documentation states that <code>NO</code> is returned only when there are no sources or timers, our code will never see <code>NO</code> returned since we added an input source to keep the runloop from spinning!</p>
+
+<p>Luckily, <code>NSRunLoop</code> controls the same object that <code>CFRunLoop</code> APIs do. The CoreFoundation alternative is to use <code>CFRunLoopRunInMode</code>, which provides a more specific reason for the runloop&#39;s exit. Specifically, <code>kCFRunLoopRunStopped</code> indicates the runloop was stopped by <code>CFRunLoopStop</code>. This is also the reason that <code>CFRunLoopRun</code> exits (other than having no sources or times, but that will not occur due to our fake source), so we don&#39;t need to bother with <code>CFRunLoopRunInMode</code>, nor check a condition.</p>
+
+<p>It is best to execute <code>CFRunLoopStop</code> on the target thread itself. We can do this by using <code>performSelector:onThread:withObject:waitUntilDone:</code>.</p>
+
+<p>The new <code>threadProc:</code> looks like this:</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">threadProc:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">ignored</span>
+<span class="p">{</span>
+  <span class="k">@autoreleasepool</span> <span class="p">{</span>
+    <span class="n">CFRunLoopSourceContext</span> <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">perform</span> <span class="o">=</span> <span class="n">DoNothingRunLoopCallback</span><span class="p">;</span>
+
+    <span class="n">CFRunLoopSourceRef</span> <span class="n">source</span> <span class="o">=</span> <span class="n">CFRunLoopSourceCreate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">context</span><span class="p">);</span>
+    <span class="n">CFRunLoopAddSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+
+    <span class="c1">// Keep processing events until the runloop is stopped.</span>
+    <span class="n">CFRunLoopRun</span><span class="p">();</span>
+
+    <span class="n">CFRunLoopRemoveSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+    <span class="n">CFRelease</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>We can use code like the following to exit the thread quickly from any thread, including the target thread itself:</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">stop</span>
+<span class="p">{</span>
+  <span class="p">[</span><span class="nb">self</span> <span class="nl">performSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">_stop</span><span class="p">)</span> <span class="nl">onThread</span><span class="p">:</span><span class="n">_thread</span> <span class="nl">withObject</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">waitUntilDone</span><span class="p">:</span><span class="nb">NO</span><span class="p">];</span>
+  <span class="n">_thread</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">_stop</span>
+<span class="p">{</span>
+  <span class="n">CFRunLoopStop</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">());</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2>Synchronizing thread startup and exit</h2>
+
+<p>Two more problems to solve: when starting the thread, can we ensure that it is ready? When shutting down a thread, can we ensure it is gone?</p>
+
+<p>I would note that there are better threading patterns than attempting to ensure the state of the target thread. For example, a thread should be able to accept work, but simply not process it until it is ready. Resources outside of the thread&#39;s runloop should be minimal such that ensuring the thread is no longer executing should be above and beyond the desired knowledge of the thread&#39;s state.</p>
+
+<p>It is tempting to simply add <code>waitUntilDone:YES</code> to the <code>performSelector</code> statement in order to wait until the target thread has exited, but that would only wait until the <code>_stop</code> selector was invoked, and not wait for the thread&#39;s cleanup code to be run. In order to do that, we need to make a new assumption: the target thread is being shut down from another thread. It would be impossible for a thread to wait for itself to shut down.</p>
+
+<p>In order for the target thread to signal to the control thread that it is done, a condition must be shared between them. <code>NSCondition</code> provides convenient semantics for our purposes.</p>
+
+<p>The thread management code is below. This pattern keeps a thread with no work asleep for long periods of time, while allowing for a fast and clean exit. It also allows for startup and shutdown to be synchronized.</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">start</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">_thread</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">_thread</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSThread</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithTarget</span><span class="p">:</span><span class="nb">self</span> <span class="nl">selector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">threadProc</span><span class="p">:)</span> <span class="nl">object</span><span class="p">:</span><span class="nb">nil</span><span class="p">];</span>
+
+  <span class="c1">// _condition was created in -init</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_thread</span> <span class="n">start</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">wait</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">stop</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_thread</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+  <span class="p">[</span><span class="nb">self</span> <span class="nl">performSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">_stop</span><span class="p">)</span> <span class="nl">onThread</span><span class="p">:</span><span class="n">_thread</span> <span class="nl">withObject</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">waitUntilDone</span><span class="p">:</span><span class="nb">NO</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">wait</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+  <span class="n">_thread</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">threadProc:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object</span>
+<span class="p">{</span>
+  <span class="k">@autoreleasepool</span> <span class="p">{</span>
+    <span class="n">CFRunLoopSourceContext</span> <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">perform</span> <span class="o">=</span> <span class="n">DoNothingRunLoopCallback</span><span class="p">;</span>
+
+    <span class="n">CFRunLoopSourceRef</span> <span class="n">source</span> <span class="o">=</span> <span class="n">CFRunLoopSourceCreate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">context</span><span class="p">);</span>
+    <span class="n">CFRunLoopAddSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">signal</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+
+    <span class="c1">// Keep processing events until the runloop is stopped.</span>
+    <span class="n">CFRunLoopRun</span><span class="p">();</span>
+
+    <span class="n">CFRunLoopRemoveSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+    <span class="n">CFRelease</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">signal</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2>Ensuring Destruction of Thread Resources</h2>
+
+<p>There is still another issue with this code: when the thread has signaled its exit, the autorelease pool has not yet been drained. Without ensuring that the thread&#39;s memory resources have been released, the purpose of synchronizing the thread&#39;s exit becomes much less appealing.</p>
+
+<p>There&#39;s a bit of a catch-22. <code>NSCondition</code> makes no promise that it is free from using <code>-autorelease</code> in its implementations of <code>-lock</code>, <code>-signal</code>, and <code>-unlock</code>. That means there should be a valid <code>NSAutoreleasePool</code> when using these APIs. We have two solutions available to us. We can either manually drain the autorelease pool, or use a different way to synchronize the thread&#39;s exit that waits until <code>threadProc:</code> has exited. The first is somewhat messy. The second has two variants of its own.</p>
+
+<h3>Manual Autorelease</h3>
+
+<p><strong>In order to use <code>NSAutoreleasePool</code> directly, you must disable ARC.</strong></p>
+
+<p>Remember that <code>-[NSAutoreleasePool drain]</code> is effectively the same as <code>-[NSAutoreleasePool release]</code> and that the pool is no longer valid after draining it. So, manually draining an autorelease pool means creating another one to ensure the <code>NSCondition</code> APIs have the right environment.</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">threadProc:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object</span>
+<span class="p">{</span>
+  <span class="bp">NSAutoreleasePool</span> <span class="o">*</span><span class="n">pool</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSAutoreleasePool</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+
+  <span class="p">{</span>
+    <span class="n">CFRunLoopSourceContext</span> <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">perform</span> <span class="o">=</span> <span class="n">DoNothingRunLoopCallback</span><span class="p">;</span>
+
+    <span class="n">CFRunLoopSourceRef</span> <span class="n">source</span> <span class="o">=</span> <span class="n">CFRunLoopSourceCreate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">context</span><span class="p">);</span>
+    <span class="n">CFRunLoopAddSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">signal</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+
+    <span class="c1">// Keep processing events until the runloop is stopped.</span>
+    <span class="n">CFRunLoopRun</span><span class="p">();</span>
+
+    <span class="n">CFRunLoopRemoveSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+    <span class="n">CFRelease</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+
+    <span class="c1">// Release all accumulated resources, but make sure NSCondition has the</span>
+    <span class="c1">// right environment.</span>
+    <span class="p">[</span><span class="n">pool</span> <span class="n">drain</span><span class="p">];</span>
+    <span class="n">pool</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSAutoreleasePool</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">signal</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+  <span class="p">}</span>
+  <span class="p">[</span><span class="n">pool</span> <span class="n">drain</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3>Using NSThreadWillExitNotification</h3>
+
+<p><code>NSThreadWillExitNotification</code> is a notification sent by <code>NSThread</code> when the thread&#39;s main function has finished and the thread is about to finish execution. This must happen after <code>threadProc:</code>, so this ensures the thread&#39;s top level autorelease pool has been drained. Since the notification fires on the exiting thread, <code>NSCondition</code> is still used to synchronize the state of the thread.</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">stop</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_thread</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="bp">NSNotificationCenter</span> <span class="o">*</span><span class="n">nc</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSNotificationCenter</span> <span class="n">defaultCenter</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">nc</span> <span class="nl">addObserver</span><span class="p">:</span><span class="nb">self</span> <span class="nl">selector</span><span class="p">:</span><span class="l">@(</span><span class="n">_signal</span><span class="l">)</span> <span class="nl">name</span><span class="p">:</span><span class="n">NSThreadWillExitNotification</span> <span class="nl">object</span><span class="p">:</span><span class="n">_thread</span><span class="p">];</span>
+
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+  <span class="p">[</span><span class="nb">self</span> <span class="nl">performSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">_stop</span><span class="p">)</span> <span class="nl">onThread</span><span class="p">:</span><span class="n">_thread</span> <span class="nl">withObject</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">waitUntilDone</span><span class="p">:</span><span class="nb">NO</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">wait</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+
+  <span class="p">[</span><span class="n">nc</span> <span class="nl">removeObserver</span><span class="p">:</span><span class="nb">self</span> <span class="nl">name</span><span class="p">:</span><span class="n">NSThreadWillExitNotification</span> <span class="nl">object</span><span class="p">:</span><span class="n">_thread</span><span class="p">];</span>
+  <span class="n">_thread</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">threadProc:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object</span>
+<span class="p">{</span>
+  <span class="k">@autoreleasepool</span> <span class="p">{</span>
+    <span class="n">CFRunLoopSourceContext</span> <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">perform</span> <span class="o">=</span> <span class="n">DoNothingRunLoopCallback</span><span class="p">;</span>
+
+    <span class="n">CFRunLoopSourceRef</span> <span class="n">source</span> <span class="o">=</span> <span class="n">CFRunLoopSourceCreate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">context</span><span class="p">);</span>
+    <span class="n">CFRunLoopAddSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">signal</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+
+    <span class="c1">// Keep processing events until the runloop is stopped.</span>
+    <span class="n">CFRunLoopRun</span><span class="p">();</span>
+
+    <span class="n">CFRunLoopRemoveSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+    <span class="n">CFRelease</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">_signal</span>
+<span class="p">{</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">signal</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3>Using pthreads</h3>
+
+<p>All of the above solutions have one slight problem: the thread hasn&#39;t quite exited when the control thread believes it has. The target thread is very close to being done, but that is not the same as done.</p>
+
+<p>To ensure that, we must go outside the realm of <code>NSThread</code> and use pthreads instead. <code>pthread_join</code> guarantees the target thread has terminated. Using pthreads makes the code a bit more verbose, and some of the memory management must be done carefully. In particular, <code>self</code> is retained when specifying it as an argument of <code>NSThread</code>&#39;s initializer, but will not be retained when using it as an argument to <code>pthread_create</code>. Note that we still need an <code>NSThread</code> reference to use <code>performSelector:onThread:withObject:waitUntilDone:</code>, but there is no way to convert a <code>pthread_t</code> to an <code>NSThread</code>. Luckily, <code>+[NSThread currentThread]</code> can obtain the correct object reference.</p>
+
+<p><code>NSCondition</code> is still used to synchronize thread startup. Because it is not used for any other purpose, it is not necessary to lock the condition before starting the thread. However, to be consistent with previous code, we will follow the previous pattern of creating the thread in a suspended state and resuming it with the condition&#39;s lock held.</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">static</span> <span class="kt">void</span> <span class="o">*</span><span class="nf">ThreadProc</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">ThreadedComponent</span> <span class="o">*</span><span class="n">component</span> <span class="o">=</span> <span class="p">(</span><span class="k">__bridge_transfer</span> <span class="n">ThreadedComponent</span> <span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
+  <span class="p">[</span><span class="n">component</span> <span class="nl">threadProc</span><span class="p">:</span><span class="nb">nil</span><span class="p">];</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">start</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">_thread</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">pthread_create_suspended_np</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_pthread</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ThreadProc</span><span class="p">,</span> <span class="p">(</span><span class="n">__bridge_retained</span> <span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="nb">self</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="c1">// _condition was created in -init</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+  <span class="kt">mach_port_t</span> <span class="n">mach_thread</span> <span class="o">=</span> <span class="n">pthread_mach_thread_np</span><span class="p">(</span><span class="n">_pthread</span><span class="p">);</span>
+  <span class="n">thread_resume</span><span class="p">(</span><span class="n">mach_thread</span><span class="p">);</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">wait</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">stop</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_thread</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="p">[</span><span class="nb">self</span> <span class="nl">performSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">_stop</span><span class="p">)</span> <span class="nl">onThread</span><span class="p">:</span><span class="n">_thread</span> <span class="nl">withObject</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">waitUntilDone</span><span class="p">:</span><span class="nb">NO</span><span class="p">];</span>
+  <span class="n">pthread_join</span><span class="p">(</span><span class="n">_pthread</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+  <span class="n">_thread</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">threadProc:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object</span>
+<span class="p">{</span>
+  <span class="k">@autoreleasepool</span> <span class="p">{</span>
+    <span class="n">CFRunLoopSourceContext</span> <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">perform</span> <span class="o">=</span> <span class="n">DoNothingRunLoopCallback</span><span class="p">;</span>
+
+    <span class="n">CFRunLoopSourceRef</span> <span class="n">source</span> <span class="o">=</span> <span class="n">CFRunLoopSourceCreate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">context</span><span class="p">);</span>
+    <span class="n">CFRunLoopAddSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+
+    <span class="c1">// Obtain the current NSThread before signaling startup is complete.</span>
+    <span class="n">_thread</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSThread</span> <span class="n">currentThread</span><span class="p">];</span>
+
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">lock</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">signal</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">_condition</span> <span class="n">unlock</span><span class="p">];</span>
+
+    <span class="c1">// Keep processing events until the runloop is stopped.</span>
+    <span class="n">CFRunLoopRun</span><span class="p">();</span>
+
+    <span class="n">CFRunLoopRemoveSource</span><span class="p">(</span><span class="n">CFRunLoopGetCurrent</span><span class="p">(),</span> <span class="n">source</span><span class="p">,</span> <span class="n">kCFRunLoopCommonModes</span><span class="p">);</span>
+    <span class="n">CFRelease</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2>Code Samples</h2>
+
+<p>Head on over to <a href="https://github.com/visigoth/blog-code/tree/master/nsthread_lifecycle">github</a> to download code samples for all four working versions of the code above.</p>
+
+    </section>
+       <footer class="post-footer">
+      
+      <span class="post-meta">
+        <a href="http://shaheengandhi.com/controlling-thread-exit#comments"><fb:comments-count href="http://shaheengandhi.com/controlling-thread-exit"></fb:comments-count> Comments</a> //
+        <i class="fa fa-calendar-o"></i><time datetime="09 March 2014">09 March 2014</time> //
+        <ul class="post-tags">
+          <li><a href="/tag/ios">#ios</a></li> <li><a href="/tag/cocoa">#cocoa</a></li> <li><a href="/tag/programming">#programming</a></li>
+        </ul>
+      </span>
+      
+    </footer>
+
+  </article>
+  
+  <article class="post">
+    <header class="post-header">
+      <div class="post-title"><a href="/synchronizing-gcd-dispatch-queues">Synchronizing GCD Dispatch Queues</a></div>
+    </header>
+    <section class="post-content">
+      <p>Let&#39;s consider some use cases of GCD dispatch queues. They are often used in producer-consumer relationships for doing asynchronous work, either in a serial or parallel fashion.</p>
+
+<p>In rare cases, you may need to synchronize the work on your queue with another thread. However, a dispatch queue does not operate on a given thread, and combining synchronization primitives with each block placed on the queue would be complicated and fragile.</p>
+
+<p>A better method is to pause and resume the execution of a dispatch queue using <code>dispatch_suspend</code> and <code>dispatch_resume</code>.</p>
+
+<h2><code>dispatch_suspend</code> is Asynchronous</h2>
+
+<p>But, there&#39;s something curious about <code>dispatch_suspend</code>. Apple&#39;s documentation for the function says:</p>
+
+<blockquote>
+<p>The suspension occurs after completion of any blocks running at the time of the call.</p>
+</blockquote>
+
+<p>The documentation doesn&#39;t tell us whether <code>dispatch_suspend</code> waits for these blocks to complete before returning, so I created a small <a href="https://github.com/visigoth/blog-code/blob/master/dispatch_suspend/main.m">test program</a> to explore this. It tests this by queueing a block that waits on a condition that only becomes true if <code>dispatch_suspend</code> is asynchronous. If <code>dispatch_suspend</code> is synchronous, the application will hang.</p>
+
+<p>When running this program on OS X 10.9, the program shows <code>dispatch_suspend</code> is an asynchronous process, so it can&#39;t be used on its own to synchronize a thread with work on a dispatch queue directly. However, there is a way we can build on top of it.</p>
+
+<h2>Barrier Blocks</h2>
+
+<p>Another facility provided by dispatch queues are barrier blocks. Barrier blocks work on both serial and concurrent dispatch queues. When submitted to a queue, all blocks ahead of the barrier will complete before the barrier starts execution, and all blocks behind the barrier will only start executing once the barrier is complete. For serial queues, this is the same as queueing any block. For concurrent queues, this ensures ordering of work and is especially handy for our purposes. Submitting a barrier block can be done with <code>dispatch_barrier_async</code> and <code>dispatch_barrier_sync</code> (and their function variants).</p>
+
+<h2>Synchronizing Queues</h2>
+
+<p>Armed with this knowledge, we can create a blocking synchronize the work done on a dispatch queue with an external thread like so:</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">dispatch_barrier_sync</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span> <span class="n">dispatch_suspend</span><span class="p">(</span><span class="n">queue</span><span class="p">);</span> <span class="p">});</span>
+
+<span class="c1">// Do some stuff</span>
+
+<span class="n">dispatch_resume</span><span class="p">(</span><span class="n">queue</span><span class="p">);</span>
+</code></pre></div>
+<p>Note this doesn&#39;t only wait for running blocks to finish; it flushes any pending work.  To achieve the former semantics, you would need to use synchronization primitives in each of your dispatch queue blocks (without a higher level abstraction).</p>
+
+    </section>
+       <footer class="post-footer">
+      
+      <span class="post-meta">
+        <a href="http://shaheengandhi.com/synchronizing-gcd-dispatch-queues#comments"><fb:comments-count href="http://shaheengandhi.com/synchronizing-gcd-dispatch-queues"></fb:comments-count> Comments</a> //
+        <i class="fa fa-calendar-o"></i><time datetime="14 February 2014">14 February 2014</time> //
+        <ul class="post-tags">
+          <li><a href="/tag/ios">#ios</a></li> <li><a href="/tag/cocoa">#cocoa</a></li> <li><a href="/tag/programming">#programming</a></li>
+        </ul>
+      </span>
+      
+    </footer>
+
+  </article>
+  
+  <article class="post">
+    <header class="post-header">
+      <div class="post-title"><a href="/its-time-for-ios-default-apps">It's Time for iOS Default Apps</a></div>
+    </header>
+    <section class="post-content">
+      <p>In 2009, the European Commission and Microsoft came to an agreement to provide a screen that offers the user a choice as to which browser should be opened by default upon the selection of a web link. It&#39;s time that people demanded the same of Apple. Already, Apple&#39;s own applications are being steadily replaced with better alternatives. Many people choose to use different camera applications because they are faster, provide better image stabilization features, or simply provide fun filters. I choose to use Chrome when possible as my browser. However, there are times when I am not able to exercise this choice. In particular, this is when the operating system&#39;s ability to highlight text areas that match a web link is used to open that link in a browser. <p /> Similarly, this is true for other items: text that looks like addresses will always open in Apple&#39;s maps app, which we all know to be a disaster when it comes to finding locations, and for which we have an alternative. <p /> There are <a href="http://www.iphonefaq.org/archives/971788">certain ways</a> to change your default browser or other applications, but they generally void your ability to get support from your carrier and are difficult for the average person to use. <p /> Apple should: <p /></p>
+
+<ul>
+<li>Provide for selection of a default web browser</li>
+<li>Provide for selection of a default maps application</li>
+<li>Allow applications to provide default sheets, such as send mail, take photo, pick photo, send message, etc.</li>
+</ul>
+
+<p>There are <a href="http://oleb.net/blog/2012/10/remote-view-controllers-in-ios-6/">signs</a> that iOS has the functionality to allow this already. When pressed, I&#39;m sure Apple will come up with arguments indicating that disallowing these choices keeps the platform secure and keeps the quality of user experience very high. However, we should remind ourselves that neither Firefox nor Chrome (and for that matter, Safari) would have gained popularity without that original decision. <p /> ~s</p>
+
+    </section>
+       <footer class="post-footer">
+      
+      <span class="post-meta">
+        <a href="http://shaheengandhi.com/its-time-for-ios-default-apps#comments"><fb:comments-count href="http://shaheengandhi.com/its-time-for-ios-default-apps"></fb:comments-count> Comments</a> //
+        <i class="fa fa-calendar-o"></i><time datetime="18 December 2012">18 December 2012</time> //
+        <ul class="post-tags">
+          <li><a href="/tag/mobile">#mobile</a></li> <li><a href="/tag/ios">#ios</a></li>
+        </ul>
+      </span>
+      
+    </footer>
+
+  </article>
+  
+  <article class="post">
+    <header class="post-header">
+      <div class="post-title"><a href="/techcrunch-on-google-tv">TechCrunch on Google TV</a></div>
+    </header>
+    <section class="post-content">
+      <p>TechCrunch <a href="http://techcrunch.com/2012/06/28/googles-tv-strategy-is-doomed/">posted</a>
+about Google TV&rsquo;s impending doom.  A particular quote caught my eye:</p>
+
+<blockquote class="posterous_medium_quote"><p>Second, no one is sure what a smart TV is supposed to be, but GTV isn’t it. No one can quite put their finger on what they want a TV to do. Is it supposed to stream home content? Allow you to watch YouTube on the big screen? Offer ways to tweet from your couch? All those things happen more quickly and more efficiently on laptops and tablets. Why co-opt the biggest screen in the house?</p></blockquote>
+
+<p>This confusion is exactly why I think TVs <a href="http://blog.brokenrobotllc.com/dumb-tvs-are-the-future">should be
+dumb</a>.  The
+smarts are in the palm of your hand.  The TV is best used as a big
+screen that celebrates content.</p>
+
+<p>~s</p>
+
+    </section>
+       <footer class="post-footer">
+      
+      <span class="post-meta">
+        <a href="http://shaheengandhi.com/techcrunch-on-google-tv#comments"><fb:comments-count href="http://shaheengandhi.com/techcrunch-on-google-tv"></fb:comments-count> Comments</a> //
+        <i class="fa fa-calendar-o"></i><time datetime="01 July 2012">01 July 2012</time> //
+        <ul class="post-tags">
+          <li><a href="/tag/tv">#tv</a></li> <li><a href="/tag/video">#video</a></li>
+        </ul>
+      </span>
+      
+    </footer>
+
+  </article>
+  
+
+  <nav class="pagination" role="pagination">
+    
+    <span class="page-number">Page 1 of 12</span>
+    
+        <a class="older-posts" href="/page/2">Older Posts &rarr;</a>
+    
+  </nav>
+</main>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <a class="exit-off-canvas"></a>
+    </div>
+  </div>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="/bower_components/foundation/js/foundation.min.js"></script>
+  <script src="/assets/js/app.js"></script>
+
+</body>
+</html>
