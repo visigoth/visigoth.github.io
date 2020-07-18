@@ -1,8 +1,0 @@
-#!/bin/bash
-set -e
-
-. $(git --exec-path)/git-sh-setup
-
-pushd "$GIT_DIR/hooks"
-ln -s ../../_tools/git-hooks/* .
-popd
