@@ -12,10 +12,11 @@ GEM
     coffee-script-source (1.12.2)
     colorator (0.1)
     execjs (2.7.0)
-    faraday (1.0.1)
+    faraday (1.2.0)
       multipart-post (>= 1.2, < 3)
+      ruby2_keywords
     fast-stemmer (1.0.2)
-    ffi (1.13.1)
+    ffi (1.14.2)
     jekyll (2.5.3)
       classifier-reborn (~> 2.0)
       colorator (~> 0.1)
@@ -45,26 +46,27 @@ GEM
       listen (~> 3.0)
     kramdown (1.17.0)
     liquid (2.6.3)
-    listen (3.2.1)
+    listen (3.3.3)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
     mercenary (0.3.6)
     multipart-post (2.1.1)
     nuggets (1.6.0)
-    octokit (4.18.0)
+    octokit (4.19.0)
       faraday (>= 0.9)
       sawyer (~> 0.8.0, >= 0.5.3)
     parslet (1.5.0)
       blankslate (~> 2.0)
     posix-spawn (0.3.15)
-    public_suffix (4.0.5)
+    public_suffix (4.0.6)
     pygments.rb (0.6.3)
       posix-spawn (~> 0.3.6)
       yajl-ruby (~> 1.2.0)
     rb-fsevent (0.10.4)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
-    redcarpet (3.5.0)
+    redcarpet (3.5.1)
+    ruby2_keywords (0.0.2)
     safe_yaml (1.0.5)
     sass (3.7.4)
       sass-listen (~> 4.0.0)
@@ -79,11 +81,11 @@ GEM
     yajl-ruby (1.2.3)
 
 PLATFORMS
-  ruby
+  x86_64-darwin-19
 
 DEPENDENCIES
   jekyll (~> 2.5.3)
   jekyll-tagging
 
 BUNDLED WITH
-   2.1.4
+   2.2.3
